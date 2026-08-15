@@ -2,7 +2,7 @@
 
 The roadmap separates implemented behavior from ideas that still need evidence. It is intentionally conservative: an item moves to "completed" only after tests and a reproducible example exist.
 
-## Completed through 0.4
+## Completed through 0.5
 
 - Sequential multi-teacher scanning with one YOLO model resident on the GPU at a time.
 - Per-class AUTO and REVIEW thresholds.
@@ -22,13 +22,14 @@ The roadmap separates implemented behavior from ideas that still need evidence. 
 - Empirical threshold calibration from human-reviewed candidate decisions.
 - Per-class AUTO precision and REVIEW recall policy reports.
 - Public six-class calibration fixture and static portfolio evidence.
+- Wilson precision lower-bound gating for conservative AUTO calibration.
+- Public 2,400-candidate confidence-aware calibration fixture and report.
 
-## Planned for 0.5
+## Planned for 0.6
 
 - Teacher adapter interface for non-Ultralytics detectors.
 - Precision-oriented benchmark fixtures for AUTO and REVIEW queues.
 - Optional Parquet candidate output for very large scans.
-- Optional confidence-interval lower bounds for conservative AUTO calibration.
 
 ## Research backlog
 

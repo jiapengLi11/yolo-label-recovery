@@ -51,7 +51,7 @@ Teacher calibration and object difficulty differ. Small smoking/slipper targets 
 
 **How did you choose the thresholds instead of guessing them?**
 
-The `calibrate` command sorts reviewed candidates once and builds cumulative precision-recall curves. AUTO uses the lowest threshold meeting an empirical precision target and minimum sample count. REVIEW uses the highest threshold retaining the target positive recall, which minimizes review workload. Unsupported targets produce no fallback threshold.
+The `calibrate` command sorts reviewed candidates once and builds cumulative precision-recall curves. AUTO uses the lowest threshold whose Wilson precision lower bound reaches the target at the selected confidence level, subject to a minimum sample count. REVIEW uses the highest threshold retaining the target positive recall, which minimizes review workload. Unsupported targets produce no fallback threshold.
 
 **What makes resume safe?**
 

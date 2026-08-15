@@ -39,7 +39,7 @@ The fixture intentionally contains one invalid class ID, one orphan label and on
 
 ![Pre-generated threshold calibration report](docs/assets/calibration-preview.png)
 
-The public fixture contains `600` reviewed candidates across all six classes. With a `95%` empirical AUTO precision target and `90%` captured-positive recall target, all six classes produce supported policies. The resulting AUTO thresholds differ substantially, from `0.662` for tractor to `0.837` for smoking, demonstrating why one global confidence threshold is unsafe.
+The public fixture contains `2,400` reviewed candidates across all six classes. AUTO requires the `95%` Wilson lower confidence bound for precision to reach `95%`, while REVIEW preserves `90%` of audited positives. All six classes produce statistically supported policies. AUTO thresholds range from `0.732` for tractor to `0.859` for smoking, demonstrating why one global confidence threshold is unsafe.
 
 ## Why this project exists
 
@@ -75,7 +75,7 @@ flowchart TD
 - `--materialize-dataset` creates a standard YOLO dataset using hardlinks when possible.
 - Review images are grouped by unique image so multiple candidates from one image remain visible together.
 - A model-free audit catches malformed labels, corrupt images and exact train/val/test leakage before GPU work starts.
-- Audited candidate decisions can calibrate class-specific AUTO precision and REVIEW recall policies.
+- Audited candidate decisions can calibrate class-specific AUTO policies using a Wilson precision lower bound and REVIEW policies using positive recall.
 - Every scan records a local manifest with parameters, image inventory, package versions, CUDA and GPU metadata.
 
 ## One-minute public demo
@@ -116,6 +116,7 @@ Calibrate thresholds from a human-reviewed candidate CSV without any GPU depende
 yolo-label-recovery calibrate reviewed_candidates.csv `
   --output-dir calibration `
   --target-auto-precision 0.95 `
+  --auto-confidence-level 0.95 `
   --target-review-recall 0.90 `
   --min-auto-samples 20 `
   --redact-paths

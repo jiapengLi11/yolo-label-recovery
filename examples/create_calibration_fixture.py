@@ -19,7 +19,7 @@ CLASS_POLICY = {
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("examples/calibration/reviewed_candidates.csv"))
-    parser.add_argument("--samples-per-class", type=int, default=100)
+    parser.add_argument("--samples-per-class", type=int, default=400)
     return parser.parse_args()
 
 

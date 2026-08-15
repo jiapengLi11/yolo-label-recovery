@@ -39,7 +39,7 @@
 
 ![预生成阈值校准报告](docs/assets/calibration-preview.png)
 
-公开样本包含六个类别共 `600` 条人工审核候选。在经验 AUTO 精度目标 `95%`、正样本覆盖召回目标 `90%` 的条件下，六个类别均得到有样本支持的策略。AUTO 阈值从拖拉机的 `0.662` 到吸烟的 `0.837` 差异明显，直观证明全类别共用一个置信度阈值并不安全。
+公开样本包含六个类别共 `2,400` 条人工审核候选。AUTO 要求精度的 `95%` Wilson 置信下限达到 `95%`，REVIEW 则保留 `90%` 的审核正样本；六个类别均得到统计证据支持的策略。AUTO 阈值从拖拉机的 `0.732` 到吸烟的 `0.859` 差异明显，直观证明全类别共用一个置信度阈值并不安全。
 
 ## 为什么需要这个项目
 
@@ -75,7 +75,7 @@ flowchart TD
 - `--materialize-dataset` 可生成标准 YOLO 数据集，并在条件允许时使用硬链接。
 - 复核图按原图聚合，同一张图中的多个候选目标会一起展示。
 - GPU 推理前先进行无模型审计，检查错误标签、损坏图片和 train/val/test 精确重复。
-- 使用人工审核候选校准分类别 AUTO 精度和 REVIEW 召回策略。
+- 使用人工审核候选校准分类别策略：AUTO 采用 Wilson 精度置信下限，REVIEW 采用正样本召回约束。
 - 每次扫描生成 manifest，记录参数、图片清单、依赖版本、CUDA 和 GPU 信息。
 
 ## 一分钟公开演示
@@ -116,6 +116,7 @@ yolo-label-recovery audit D:\data\mining-safety --output-dir D:\data\audit-001 -
 yolo-label-recovery calibrate reviewed_candidates.csv `
   --output-dir calibration `
   --target-auto-precision 0.95 `
+  --auto-confidence-level 0.95 `
   --target-review-recall 0.90 `
   --min-auto-samples 20 `
   --redact-paths

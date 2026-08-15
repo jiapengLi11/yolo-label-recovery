@@ -10,6 +10,7 @@ from yolo_label_recovery.calibration import (
     build_threshold_curve,
     calibrate,
     read_reviewed_candidates,
+    wilson_lower_bound,
     write_outputs,
 )
 
@@ -32,6 +33,7 @@ def test_calibration_selects_precision_and_recall_constrained_thresholds():
     results, _ = calibrate(
         candidates,
         target_auto_precision=1.0,
+        auto_confidence_level=0.0,
         target_review_recall=1.0,
         min_auto_samples=3,
     )
@@ -61,6 +63,7 @@ def test_calibration_refuses_unattainable_auto_policy():
     results, _ = calibrate(
         candidates,
         target_auto_precision=1.0,
+        auto_confidence_level=0.0,
         target_review_recall=1.0,
         min_auto_samples=2,
     )
@@ -85,6 +88,7 @@ def test_csv_validation_and_output_artifacts(tmp_path):
     results, curves = calibrate(
         candidates,
         target_auto_precision=1.0,
+        auto_confidence_level=0.0,
         target_review_recall=1.0,
         min_auto_samples=1,
     )
@@ -94,6 +98,7 @@ def test_csv_validation_and_output_artifacts(tmp_path):
         results=results,
         curves=curves,
         target_auto_precision=1.0,
+        auto_confidence_level=0.0,
         target_review_recall=1.0,
         min_auto_samples=1,
         redact_paths=True,
@@ -112,3 +117,27 @@ def test_csv_rejects_unknown_verdict(tmp_path):
 
     with pytest.raises(ValueError, match="unsupported verdict"):
         read_reviewed_candidates(reviewed_csv)
+
+
+def test_wilson_lower_bound_penalizes_small_perfect_samples():
+    assert wilson_lower_bound(10, 10, 0.95) == pytest.approx(0.7225, abs=0.0001)
+    assert wilson_lower_bound(100, 100, 0.95) == pytest.approx(0.9630, abs=0.0001)
+    assert wilson_lower_bound(10, 10, 0.0) == pytest.approx(1.0)
+
+
+def test_confidence_aware_calibration_requires_statistical_support():
+    candidates = [_candidate(0.99 - index * 0.001, True) for index in range(100)]
+
+    results, _ = calibrate(
+        candidates,
+        target_auto_precision=0.95,
+        auto_confidence_level=0.95,
+        target_review_recall=1.0,
+        min_auto_samples=20,
+    )
+
+    smoking = results["smoking"]
+    assert smoking["status"] == "calibrated"
+    assert smoking["auto_samples"] >= 73
+    assert smoking["auto_precision"] == pytest.approx(1.0)
+    assert smoking["auto_precision_lower_bound"] >= 0.95

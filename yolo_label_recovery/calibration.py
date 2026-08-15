@@ -9,6 +9,7 @@ import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from statistics import NormalDist
 
 POSITIVE_VERDICTS = {"1", "accept", "accepted", "positive", "true", "tp", "yes"}
 NEGATIVE_VERDICTS = {"0", "false", "fp", "negative", "no", "reject", "rejected"}
@@ -28,6 +29,7 @@ class CurvePoint:
     true_positive: int
     false_positive: int
     precision: float | None
+    precision_lower_bound: float | None
     recall: float | None
 
 
@@ -40,6 +42,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--verdict-column", default="verdict")
     parser.add_argument("--classes", nargs="+", default=None, help="Optional class allowlist.")
     parser.add_argument("--target-auto-precision", type=float, default=0.98)
+    parser.add_argument(
+        "--auto-confidence-level",
+        type=float,
+        default=0.95,
+        help="Wilson confidence level for AUTO precision. Use 0 to select by empirical precision only.",
+    )
     parser.add_argument("--target-review-recall", type=float, default=0.95)
     parser.add_argument("--min-auto-samples", type=int, default=20)
     parser.add_argument("--redact-paths", action="store_true")
@@ -99,7 +107,25 @@ def read_reviewed_candidates(
     return candidates
 
 
-def build_threshold_curve(candidates: list[ReviewedCandidate]) -> list[CurvePoint]:
+def wilson_lower_bound(successes: int, total: int, confidence_level: float) -> float | None:
+    if total == 0:
+        return None
+    if confidence_level == 0:
+        return successes / total
+    if not 0.0 < confidence_level < 1.0:
+        raise ValueError("auto_confidence_level must be 0 or in (0, 1).")
+    proportion = successes / total
+    z = NormalDist().inv_cdf(0.5 + confidence_level / 2.0)
+    z_squared = z * z
+    denominator = 1.0 + z_squared / total
+    center = proportion + z_squared / (2.0 * total)
+    margin = z * ((proportion * (1.0 - proportion) + z_squared / (4.0 * total)) / total) ** 0.5
+    return (center - margin) / denominator
+
+
+def build_threshold_curve(
+    candidates: list[ReviewedCandidate], *, confidence_level: float = 0.0
+) -> list[CurvePoint]:
     positives = sum(candidate.accepted for candidate in candidates)
     ordered = sorted(candidates, key=lambda candidate: candidate.confidence, reverse=True)
     curve = []
@@ -120,6 +146,7 @@ def build_threshold_curve(candidates: list[ReviewedCandidate]) -> list[CurvePoin
                 true_positive=true_positive,
                 false_positive=false_positive,
                 precision=true_positive / selected,
+                precision_lower_bound=wilson_lower_bound(true_positive, selected, confidence_level),
                 recall=true_positive / positives if positives else None,
             )
         )
@@ -130,10 +157,11 @@ def calibrate_class(
     candidates: list[ReviewedCandidate],
     *,
     target_auto_precision: float,
+    auto_confidence_level: float,
     target_review_recall: float,
     min_auto_samples: int,
 ) -> tuple[dict[str, object], list[CurvePoint]]:
-    curve = build_threshold_curve(candidates)
+    curve = build_threshold_curve(candidates, confidence_level=auto_confidence_level)
     positives = sum(candidate.accepted for candidate in candidates)
     negatives = len(candidates) - positives
 
@@ -141,8 +169,8 @@ def calibrate_class(
         point
         for point in curve
         if point.selected >= min_auto_samples
-        and point.precision is not None
-        and point.precision >= target_auto_precision
+        and point.precision_lower_bound is not None
+        and point.precision_lower_bound >= target_auto_precision
     ]
     auto_point = min(auto_options, key=lambda point: point.threshold, default=None)
 
@@ -184,6 +212,7 @@ def calibrate_class(
         "acceptance_rate": positives / len(candidates),
         "auto_threshold": auto_threshold,
         "auto_precision": auto_point.precision if auto_point else None,
+        "auto_precision_lower_bound": auto_point.precision_lower_bound if auto_point else None,
         "auto_recall": auto_point.recall if auto_point else None,
         "auto_samples": auto_point.selected if auto_point else 0,
         "review_threshold": review_threshold,
@@ -198,11 +227,14 @@ def calibrate(
     candidates: list[ReviewedCandidate],
     *,
     target_auto_precision: float,
+    auto_confidence_level: float,
     target_review_recall: float,
     min_auto_samples: int,
 ) -> tuple[dict[str, dict[str, object]], dict[str, list[CurvePoint]]]:
     if not 0.0 < target_auto_precision <= 1.0:
         raise ValueError("target_auto_precision must be in (0, 1].")
+    if auto_confidence_level != 0 and not 0.0 < auto_confidence_level < 1.0:
+        raise ValueError("auto_confidence_level must be 0 or in (0, 1).")
     if not 0.0 < target_review_recall <= 1.0:
         raise ValueError("target_review_recall must be in (0, 1].")
     if min_auto_samples < 1:
@@ -218,6 +250,7 @@ def calibrate(
         result, curve = calibrate_class(
             grouped[class_name],
             target_auto_precision=target_auto_precision,
+            auto_confidence_level=auto_confidence_level,
             target_review_recall=target_review_recall,
             min_auto_samples=min_auto_samples,
         )
@@ -260,6 +293,7 @@ def _line_chart(class_name: str, curve: list[CurvePoint], target_precision: floa
         f'<line x1="{left}" y1="{target_precision_y:.1f}" x2="{left + plot_width}" y2="{target_precision_y:.1f}" class="target precision-target"/>'
         f'<line x1="{left}" y1="{target_recall_y:.1f}" x2="{left + plot_width}" y2="{target_recall_y:.1f}" class="target recall-target"/>'
         f'<polyline points="{points("precision")}" class="precision"/>'
+        f'<polyline points="{points("precision_lower_bound")}" class="precision-lcb"/>'
         f'<polyline points="{points("recall")}" class="recall"/>'
         '<text x="48" y="207">0.0</text><text x="280" y="207">confidence threshold</text>'
         '<text x="517" y="207">1.0</text><text x="8" y="28">1.0</text><text x="8" y="184">0.0</text>'
@@ -283,6 +317,7 @@ def _generate_html(payload: dict[str, object], curves: dict[str, list[CurvePoint
             f"{html.escape(str(result['status']))}</span></td>"
             f"<td>{result['samples']}</td><td>{result['accepted']}</td>"
             f"<td>{_fmt(result['auto_threshold'])}</td><td>{_fmt(result['auto_precision'])}</td>"
+            f"<td>{_fmt(result['auto_precision_lower_bound'])}</td>"
             f"<td>{_fmt(result['review_threshold'])}</td><td>{_fmt(result['captured_positive_recall'])}</td>"
             f"<td>{result['review_queue_samples']}</td>"
             "</tr>"
@@ -301,6 +336,12 @@ def _generate_html(payload: dict[str, object], curves: dict[str, list[CurvePoint
         isinstance(result, dict) and result.get("status") == "calibrated" for result in class_results.values()
     )
     total_samples = sum(int(result["samples"]) for result in class_results.values() if isinstance(result, dict))
+    confidence_level = float(policy["auto_confidence_level"])
+    auto_guardrail = (
+        f"AUTO uses a {confidence_level:.0%} Wilson precision lower bound."
+        if confidence_level
+        else "AUTO uses empirical precision because confidence-bound mode is disabled."
+    )
 
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -314,19 +355,19 @@ main{{max-width:1220px;margin:auto;padding:42px 24px 72px}}header{{padding:38px;
 table{{width:100%;border-collapse:collapse}}th,td{{padding:12px 10px;border-bottom:1px solid var(--line);text-align:right}}th:first-child,td:first-child{{text-align:left}}th{{color:var(--muted);font-size:12px;text-transform:uppercase}}
 .status{{display:block;width:max-content;margin-top:4px;padding:2px 7px;border-radius:10px;background:#eef3f7;color:var(--muted);font-size:11px}}.status.calibrated{{background:#dff6ee;color:#13795b}}
 .legend{{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0;color:var(--muted)}}.swatch{{display:inline-block;width:22px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}}.chart-grid{{display:grid;grid-template-columns:1fr 1fr;gap:16px}}.chart{{padding:18px}}.chart h3{{margin:0 0 8px}}
-svg{{display:block;width:100%}}.axis{{stroke:#9fb3c3;stroke-width:1}}.precision{{fill:none;stroke:var(--teal);stroke-width:4}}.recall{{fill:none;stroke:var(--orange);stroke-width:4}}.target{{stroke-width:1.5;stroke-dasharray:6 5}}.precision-target{{stroke:var(--teal)}}.recall-target{{stroke:var(--orange)}}svg text{{font-size:11px;fill:var(--muted)}}
+svg{{display:block;width:100%}}.axis{{stroke:#9fb3c3;stroke-width:1}}.precision{{fill:none;stroke:var(--teal);stroke-width:4}}.precision-lcb{{fill:none;stroke:var(--navy);stroke-width:2.5;stroke-dasharray:5 4}}.recall{{fill:none;stroke:var(--orange);stroke-width:4}}.target{{stroke-width:1.5;stroke-dasharray:6 5}}.precision-target{{stroke:var(--teal)}}.recall-target{{stroke:var(--orange)}}svg text{{font-size:11px;fill:var(--muted)}}
 .notice{{padding:14px 16px;border-left:4px solid var(--orange);background:#fff8e8;border-radius:8px}}code{{background:#edf2f6;padding:2px 6px;border-radius:5px}}@media(max-width:850px){{.cards,.chart-grid{{grid-template-columns:1fr 1fr}}}}@media(max-width:560px){{.cards,.chart-grid{{grid-template-columns:1fr}}h1{{font-size:32px}}}}
 </style></head><body><main>
 <header><div class="eyebrow">Human-in-the-loop policy calibration</div><h1>Threshold Calibration Report</h1>
-<p>Class-specific AUTO thresholds maximize coverage while satisfying empirical precision; REVIEW thresholds minimize queue size while preserving positive recall.</p>
+<p>Class-specific AUTO thresholds maximize coverage while satisfying a confidence-bound precision target; REVIEW thresholds minimize queue size while preserving positive recall.</p>
 <div class="muted">Source: {html.escape(str(payload['source']))}</div></header>
 <section class="cards"><div class="card"><div class="value">{total_samples}</div><div class="label">Audited candidates</div></div>
 <div class="card"><div class="value">{len(class_results)}</div><div class="label">Classes</div></div>
-<div class="card"><div class="value">{float(policy['target_auto_precision']):.0%}</div><div class="label">AUTO precision target</div></div>
+<div class="card"><div class="value">{float(policy['target_auto_precision']):.0%}</div><div class="label">AUTO precision lower-bound target</div></div>
 <div class="card"><div class="value">{calibrated_count}/{len(class_results)}</div><div class="label">Classes calibrated</div></div></section>
-<section class="panel"><h2>Recommended policy</h2><table><thead><tr><th>Class / status</th><th>Samples</th><th>Accepted</th><th>AUTO</th><th>AUTO precision</th><th>REVIEW</th><th>Captured recall</th><th>Review queue</th></tr></thead><tbody>{''.join(rows)}</tbody></table></section>
-<section class="panel"><h2>Precision-recall evidence</h2><div class="legend"><span><i class="swatch" style="background:var(--teal)"></i>Precision</span><span><i class="swatch" style="background:var(--orange)"></i>Recall</span><span>Dashed lines = policy targets</span></div><div class="chart-grid">{charts}</div></section>
-<section class="panel"><div class="notice"><strong>Guardrail:</strong> these thresholds are recommendations from the audited sample, not universal constants. Recalibrate after teacher, camera, domain or label-policy changes.</div></section>
+<section class="panel"><h2>Recommended policy</h2><table><thead><tr><th>Class / status</th><th>Samples</th><th>Accepted</th><th>AUTO</th><th>Empirical precision</th><th>Precision LCB</th><th>REVIEW</th><th>Captured recall</th><th>Review queue</th></tr></thead><tbody>{''.join(rows)}</tbody></table></section>
+<section class="panel"><h2>Precision-recall evidence</h2><div class="legend"><span><i class="swatch" style="background:var(--teal)"></i>Empirical precision</span><span><i class="swatch" style="background:var(--navy)"></i>Wilson precision LCB</span><span><i class="swatch" style="background:var(--orange)"></i>Recall</span><span>Dashed lines = policy targets</span></div><div class="chart-grid">{charts}</div></section>
+<section class="panel"><div class="notice"><strong>Guardrail:</strong> {auto_guardrail} These thresholds are still sample-based recommendations, not universal constants. Recalibrate after teacher, camera, domain or label-policy changes.</div></section>
 </main></body></html>"""
 
 
@@ -337,6 +378,7 @@ def write_outputs(
     results: dict[str, dict[str, object]],
     curves: dict[str, list[CurvePoint]],
     target_auto_precision: float,
+    auto_confidence_level: float,
     target_review_recall: float,
     min_auto_samples: int,
     redact_paths: bool,
@@ -349,6 +391,7 @@ def write_outputs(
         "source": source,
         "policy": {
             "target_auto_precision": target_auto_precision,
+            "auto_confidence_level": auto_confidence_level,
             "target_review_recall": target_review_recall,
             "min_auto_samples": min_auto_samples,
         },
@@ -370,7 +413,16 @@ def write_outputs(
     with curve_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(
             handle,
-            fieldnames=["class_name", "threshold", "selected", "true_positive", "false_positive", "precision", "recall"],
+            fieldnames=[
+                "class_name",
+                "threshold",
+                "selected",
+                "true_positive",
+                "false_positive",
+                "precision",
+                "precision_lower_bound",
+                "recall",
+            ],
         )
         writer.writeheader()
         for class_name, curve in curves.items():
@@ -396,6 +448,7 @@ def main(argv: list[str] | None = None) -> None:
     results, curves = calibrate(
         candidates,
         target_auto_precision=args.target_auto_precision,
+        auto_confidence_level=args.auto_confidence_level,
         target_review_recall=args.target_review_recall,
         min_auto_samples=args.min_auto_samples,
     )
@@ -405,6 +458,7 @@ def main(argv: list[str] | None = None) -> None:
         results=results,
         curves=curves,
         target_auto_precision=args.target_auto_precision,
+        auto_confidence_level=args.auto_confidence_level,
         target_review_recall=args.target_review_recall,
         min_auto_samples=args.min_auto_samples,
         redact_paths=args.redact_paths,

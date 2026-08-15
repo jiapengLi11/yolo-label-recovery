@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0
+
+- Added Wilson score precision lower bounds for confidence-aware AUTO threshold calibration.
+- Made `95%` statistical confidence the CLI default while retaining `0` as an empirical-policy compatibility mode.
+- Expanded the deterministic public calibration fixture from 600 to 2,400 reviewed candidates.
+- Added empirical precision and precision lower-bound evidence to CSV, JSON and HTML reports.
+- Added statistical boundary tests demonstrating why small perfect samples are insufficient evidence.
+
 ## 0.4.0
 
 - Added pre-generated, path-redacted audit and recovery screenshots to both README languages for offline presentation.

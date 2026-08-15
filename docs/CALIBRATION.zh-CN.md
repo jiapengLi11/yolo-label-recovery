@@ -29,9 +29,11 @@ precision(t) = 置信度 >= t 且审核通过的候选数 / 置信度 >= t 的�
 recall(t)    = 置信度 >= t 且审核通过的候选数 / 全部审核通过候选数
 ```
 
+对于 AUTO，工具还会计算观测精度的 Wilson 置信下限。与经验精度相比，它会惩罚小样本。例如在 `95%` 置信水平下，`10/10` 全部通过虽然经验精度为 `100%`，但精度下限仅约 `72.25%`；达到 `100/100` 时，下限才提高到约 `96.30%`。
+
 AUTO 阈值选择同时满足以下条件的最低阈值：
 
-- 经验精度不低于 `--target-auto-precision`；
+- 在 `--auto-confidence-level` 置信水平下，Wilson 精度下限不低于 `--target-auto-precision`；
 - AUTO 区域至少包含 `--min-auto-samples` 条审核样本。
 
 在满足精度约束的前提下选择最低阈值，可以最大化自动补标覆盖率。
@@ -49,6 +51,7 @@ yolo-label-recovery calibrate `
   examples\calibration\reviewed_candidates.csv `
   --output-dir examples\calibration\output `
   --target-auto-precision 0.95 `
+  --auto-confidence-level 0.95 `
   --target-review-recall 0.90 `
   --min-auto-samples 20 `
   --redact-paths
@@ -57,17 +60,18 @@ yolo-label-recovery calibrate `
 输出内容：
 
 - `calibration.json`：策略、分类别结果和可直接使用的阈值覆盖参数；
-- `threshold_curve.csv`：全部类别、阈值对应的精度召回数据；
+- `threshold_curve.csv`：全部类别、阈值对应的经验精度、Wilson 下限和召回数据；
 - `calibration.html`：自包含可视化证据报告。
 
 ## 使用边界
 
 - 置信度依赖 Teacher 和业务域；更换模型、摄像头、光照或标注规范后应重新校准。
-- 经验精度不是统计学保证。高风险部署应增加审核样本，或使用置信区间下界策略。
+- Wilson 下限可以抑制小样本过度乐观，但无法修复有偏或不具代表性的审核样本。
+- 仅在复现旧版经验精度策略时使用 `--auto-confidence-level 0`。
 - 审核样本应覆盖全部工况，不能只审核容易样本或高置信度样本。
 - 校准数据应与最终模型测试数据分离。
 - 高置信度 Teacher 预测仍然只是证据，不等于真实标签。
 
 ## 面试讲解
 
-该设计将模型分数和业务风险分开。AUTO 采用精度约束，因为错误自动标签会静默污染训练数据；REVIEW 采用召回约束，因为它的主要成本是人工时间，而不是静默污染。必须按类别制定策略，因为吸烟、拖鞋等小目标与拖拉机等大目标的置信度校准特性并不相同。
+该设计将模型分数和业务风险分开。AUTO 采用带置信下限的精度约束，因为错误自动标签会静默污染训练数据；REVIEW 采用召回约束，因为它的主要成本是人工时间，而不是静默污染。必须按类别制定策略，因为吸烟、拖鞋等小目标与拖拉机等大目标的置信度校准特性并不相同。
