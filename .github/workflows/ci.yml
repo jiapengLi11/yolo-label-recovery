@@ -44,7 +44,7 @@ jobs:
       - name: Reject common machine-specific paths
         shell: bash
         run: |
-          if grep -RInE --exclude-dir=.git --exclude-dir=build --exclude-dir=dist --exclude-dir='*.egg-info' --exclude='*.png' --exclude='*.svg' \
+          if grep -RInE --exclude-dir=.git --exclude-dir=build --exclude-dir=dist --exclude-dir='*.egg-info' --exclude='ci.yml' --exclude='*.png' --exclude='*.svg' \
             '([A-Za-z]:\\Users\\|[A-Za-z]:\\project|[A-Za-z]:\\yolo|/home/[^/]+/|/Users/[^/]+/)' .; then
             echo "Machine-specific path found. Replace it with a portable example."
             exit 1
