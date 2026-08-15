@@ -23,6 +23,7 @@
 | 评估与策略 | `calibrate` 命令 | 将人工审核结果转换为精度/召回约束的分类别策略 |
 | 集成决策 | `consensus` 命令 | 独立证据、一对一匹配与覆盖率/风险取舍 |
 | 可扩展相似度搜索 | `cluster` 命令 | 感知哈希、BK-tree 半径查询与保守碰撞防护 |
+| 主动学习 | `prioritize` 命令 | 不确定性、动态类别平衡、视觉多样性与偏置抽样边界 |
 | 软件质量 | Python 包、CLI、测试和 CI | 公开测试夹具、隐私扫描与 Release 构建 |
 | 技术沟通 | HTML 报告与架构文档 | 将模型工作转化为可审核、可展示的证据 |
 
@@ -35,7 +36,8 @@
 5. 打开 `examples/calibration/output/calibration.html`，解释为什么每个类别需要不同阈值。
 6. 打开 `examples/consensus/output/consensus.html`，展示不受支持的 AUTO 如何降级。
 7. 打开 `examples/near_duplicates/output/near_duplicate_report.html`，展示审核压缩与跨划分泄漏。
-8. 运行 `yolo-label-recovery doctor`，展示环境诊断能力。
+8. 打开 `examples/prioritization/output/prioritization_report.html`，展示有限预算六类审核队列。
+9. 运行 `yolo-label-recovery doctor`，展示环境诊断能力。
 
 该演示不需要 GPU 或私有权重。具备合适的公开模型与数据后，可将完整 Teacher 扫描作为第二阶段演示。
 
@@ -72,6 +74,10 @@ Teacher 的置信度校准和目标难度不同。吸烟、拖鞋等小目标不
 **为什么近重复检测不直接两两比较全部图片？**
 
 暴力比较会按 `O(N²)` 增长。`cluster` 命令仅保存紧凑指纹，使用 BK-tree 做汉明距离半径搜索，再用 aHash、宽高比和低纹理亮度约束过滤。即便如此，每个分组仍只是人工审核证据，而不是自动删除决定。
+
+**主动审核队列能用来汇报模型精度吗？**
+
+不能。它会主动过采样不确定、稀缺和视觉多样的困难样本，因此通过率存在偏置。它用于提高每小时发现问题的数量；精度仍需单独的随机或分层随机审核样本。
 
 ## 不应夸大的内容
 

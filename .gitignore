@@ -47,3 +47,4 @@ Desktop.ini
 !examples/consensus/*.csv
 !examples/consensus/output/*.csv
 !examples/near_duplicates/output/*.csv
+!examples/prioritization/output/*.csv

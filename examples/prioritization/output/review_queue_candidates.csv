@@ -1,0 +1,13 @@
+﻿priority_rank,split,image,class_name,conf,mode,cx,cy,w,h
+1,train,smoking_00.png,smoking,0.55,review,0.5,0.5,0.2,0.2
+2,train,tractor_04.png,tractor,0.47,review,0.5,0.5,0.2,0.2
+3,train,slipper_03.jpg,slipper,0.43,review,0.5,0.5,0.2,0.2
+4,train,helmet_06.png,helmet,0.55,review,0.5,0.5,0.2,0.2
+5,train,person_09.jpg,person,0.43,review,0.5,0.5,0.2,0.2
+6,train,vest_05.jpg,vest,0.51,review,0.5,0.5,0.2,0.2
+7,train,slipper_00.png,slipper,0.52,review,0.5,0.5,0.2,0.2
+8,train,vest_01.jpg,vest,0.53,review,0.5,0.5,0.2,0.2
+9,train,helmet_02.png,helmet,0.57,review,0.5,0.5,0.2,0.2
+10,train,person_06.png,person,0.52,review,0.5,0.5,0.2,0.2
+11,train,smoking_01.jpg,smoking,0.62,review,0.5,0.5,0.2,0.2
+12,train,tractor_00.png,tractor,0.49,review,0.5,0.5,0.2,0.2

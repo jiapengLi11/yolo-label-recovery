@@ -62,3 +62,9 @@ flowchart LR
 ```
 
 The calibration sample is evidence for the routing policy, not a replacement for an independent model test set. A policy should be recalibrated when the Teacher model, target camera domain, operating conditions or annotation rules change.
+
+## Active review acquisition
+
+The optional `prioritize` stage consumes candidate CSV evidence after scanning. It groups boxes by image, resolves each image inside the dataset boundary and ranks a fixed review budget using confidence entropy, dynamically decayed class rarity and minimum perceptual distance to the already selected set.
+
+This queue is intentionally biased toward informative cases. It belongs on the remediation path, not the model-metric path: precision and recall estimates still require an independent random or stratified-random audit sample.

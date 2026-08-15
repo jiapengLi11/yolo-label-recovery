@@ -45,6 +45,11 @@ jobs:
           python examples/create_near_duplicate_fixture.py --output /tmp/ylr-near-duplicates
           yolo-label-recovery cluster /tmp/ylr-near-duplicates --output-dir /tmp/ylr-near-duplicate-output --redact-paths
           python -c "import json; d=json.load(open('/tmp/ylr-near-duplicate-output/near_duplicate_summary.json')); assert d['totals']['images_discovered']==11 and d['totals']['fingerprint_failures']==1 and d['totals']['clusters']==3 and d['totals']['clustered_images']==7 and d['totals']['cross_split_clusters']==2"
+      - name: Run active review prioritization demo
+        run: |
+          python examples/create_prioritization_fixture.py --output-dir /tmp/ylr-priority-fixture
+          yolo-label-recovery prioritize /tmp/ylr-priority-fixture/candidates_review.csv /tmp/ylr-priority-fixture/dataset --output-dir /tmp/ylr-priority-output --budget 12 --redact-paths
+          python -c "import json; d=json.load(open('/tmp/ylr-priority-output/prioritization_summary.json')); assert d['totals']['candidate_rows']==36 and d['totals']['selected_images']==12 and d['totals']['selected_classes']==6 and len({r['candidate_classes'] for r in d['queue'][:6]})==6"
       - name: Build wheel
         run: python -m pip wheel --no-deps --wheel-dir dist .
       - name: Reject private artifacts

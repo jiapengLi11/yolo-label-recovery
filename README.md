@@ -53,6 +53,12 @@ The public fixture contains `96` primary candidates across six classes. Of `72` 
 
 The public fixture groups resize, JPEG recompression and brightness variants without merging black and white low-texture frames. It finds `3` groups containing `7` images, reduces first-pass review to `3` representatives and flags `2` groups crossing dataset splits.
 
+### Diversity-aware active review queue
+
+![Pre-generated active review prioritization report](docs/assets/prioritization-preview.png)
+
+The public fixture contains `36` imbalanced REVIEW images. A budget of `12` covers all `6` classes, with one class represented in each of the first six positions. Dynamic rarity prevents small classes from being ignored while perceptual diversity suppresses repeated frames.
+
 ## Why this project exists
 
 Multi-class datasets often contain combined scenes such as `person + helmet + smoking` or `person + slipper`. If the original annotation process focused on one target at a time, valid objects from other classes can be missing. Training a new multi-class model on incomplete labels can make the model learn the wrong supervision signal.
@@ -93,6 +99,7 @@ flowchart TD
 - Audited candidate decisions can calibrate class-specific AUTO policies using a Wilson precision lower bound and REVIEW policies using positive recall.
 - Independent Teacher candidate streams can gate AUTO decisions with one-to-one spatial agreement without loading two models together.
 - Perceptual hashes, a BK-tree and conservative visual guards group repeated review work and expose near-duplicate split leakage.
+- Image-level active review combines confidence entropy, dynamically decayed class rarity and greedy perceptual diversity.
 - Every scan records a local manifest with parameters, image inventory, package versions, CUDA and GPU metadata.
 
 ## One-minute public demo
@@ -156,6 +163,15 @@ yolo-label-recovery cluster D:\data\mining-safety `
   --output-dir D:\data\near-duplicate-audit `
   --workers 4 `
   --max-distance 6 `
+  --redact-paths
+```
+
+Build a limited-budget, diversity-aware human review queue:
+
+```powershell
+yolo-label-recovery prioritize D:\runs\candidates_review.csv D:\data\mining-safety `
+  --output-dir D:\runs\priority-review `
+  --budget 500 `
   --redact-paths
 ```
 
@@ -277,6 +293,8 @@ See:
 - [Cross-Teacher consensus (Simplified Chinese)](docs/CONSENSUS.zh-CN.md)
 - [Perceptual near-duplicate grouping](docs/NEAR_DUPLICATES.md)
 - [Perceptual near-duplicate grouping (Simplified Chinese)](docs/NEAR_DUPLICATES.zh-CN.md)
+- [Active review prioritization](docs/ACTIVE_REVIEW.md)
+- [Active review prioritization (Simplified Chinese)](docs/ACTIVE_REVIEW.zh-CN.md)
 - [Interview presentation](docs/INTERVIEW_STORY.md)
 - [Portfolio and interview guide](docs/PORTFOLIO_GUIDE.md)
 - [Portfolio and interview guide (Simplified Chinese)](docs/PORTFOLIO_GUIDE.zh-CN.md)

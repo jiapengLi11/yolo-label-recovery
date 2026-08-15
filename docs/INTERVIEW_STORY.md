@@ -20,6 +20,7 @@ Long scans are checkpointed after every committed batch. Resume validates a run 
 - Atomic checkpoint/resume avoids restarting completed teacher/split work.
 - The HTML report turns audit artifacts into a reviewable delivery and GitHub demo.
 - Perceptual near-duplicate grouping uses compact hashes and BK-tree radius search to reduce repeated review without loading all pixels or comparing every pair.
+- Active review ranking uses confidence entropy, diminishing class-rarity rewards and greedy visual diversity, while keeping metric estimation on a separate unbiased sample.
 - `doctor` and `manifest.json` make environment differences visible instead of leaving CUDA and dependency drift implicit.
 
 ## Honest limitation

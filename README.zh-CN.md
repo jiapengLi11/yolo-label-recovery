@@ -53,6 +53,12 @@
 
 公开样例能够聚合缩放、JPEG 重压缩和亮度变化图片，同时不会错误合并纯黑与纯白低纹理帧。结果包含 `3` 组、共 `7` 张图片，只需优先审核 `3` 张代表图，并发现 `2` 组跨数据划分近重复。
 
+### 多样性感知主动审核队列
+
+![预生成主动审核优先级报告](docs/assets/prioritization-preview.png)
+
+公开样例包含 `36` 张类别不均衡的 REVIEW 图片。预算为 `12` 时覆盖全部 `6` 类，前六个位置每类各占一个。动态稀缺度避免小类被忽略，感知多样性则抑制重复连续帧。
+
 ## 为什么需要这个项目
 
 多类别数据集经常包含 `person + helmet + smoking`、`person + slipper` 等联合场景。如果原始标注工作每次只关注一个目标，图中其他类别的有效目标就可能漏标。使用不完整标签训练多类别模型时，这些目标会被当作背景，从而向模型传递错误监督信号。
@@ -93,6 +99,7 @@ flowchart TD
 - 使用人工审核候选校准分类别策略：AUTO 采用 Wilson 精度置信下限，REVIEW 采用正样本召回约束。
 - 使用独立 Teacher 候选流进行一对一空间一致性门控，无需同时加载两个模型。
 - 使用感知哈希、BK-tree 和保守视觉约束压缩重复审核工作，并发现跨划分近重复泄漏。
+- 图片级主动审核联合置信度熵、动态衰减类别稀缺度和贪心感知多样性。
 - 每次扫描生成 manifest，记录参数、图片清单、依赖版本、CUDA 和 GPU 信息。
 
 ## 一分钟公开演示
@@ -156,6 +163,15 @@ yolo-label-recovery cluster D:\data\mining-safety `
   --output-dir D:\data\near-duplicate-audit `
   --workers 4 `
   --max-distance 6 `
+  --redact-paths
+```
+
+生成有限预算、多样性感知的人工审核队列：
+
+```powershell
+yolo-label-recovery prioritize D:\runs\candidates_review.csv D:\data\mining-safety `
+  --output-dir D:\runs\priority-review `
+  --budget 500 `
   --redact-paths
 ```
 
@@ -277,6 +293,8 @@ out-root/
 - [跨 Teacher 一致性门控（英文）](docs/CONSENSUS.md)
 - [感知近重复聚类（中文）](docs/NEAR_DUPLICATES.zh-CN.md)
 - [感知近重复聚类（英文）](docs/NEAR_DUPLICATES.md)
+- [主动审核优先级（中文）](docs/ACTIVE_REVIEW.zh-CN.md)
+- [主动审核优先级（英文）](docs/ACTIVE_REVIEW.md)
 - [面试项目讲解](docs/INTERVIEW_STORY.md)
 - [作品集与面试指南（中文）](docs/PORTFOLIO_GUIDE.zh-CN.md)
 - [作品集与面试指南（英文）](docs/PORTFOLIO_GUIDE.md)

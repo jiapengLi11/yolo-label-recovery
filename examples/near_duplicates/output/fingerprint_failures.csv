@@ -1,2 +1,2 @@
 ﻿split,path,error
-test,images/test/corrupt.jpg,cannot identify image file 'C:\\Users\\22842\\AppData\\Local\\Temp\\ylr-near-duplicates-v07\\images\\test\\corrupt.jpg'
+test,images/test/corrupt.jpg,cannot identify image file '[REDACTED_DATASET_ROOT]/images/test/corrupt.jpg'

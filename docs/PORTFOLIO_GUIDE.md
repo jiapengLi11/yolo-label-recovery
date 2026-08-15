@@ -23,6 +23,7 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 | Evaluation and policy | `calibrate` command | Turning reviewed outcomes into precision/recall-constrained class policies |
 | Ensemble policy | `consensus` command | Independent evidence, one-to-one matching and coverage/risk tradeoffs |
 | Scalable similarity search | `cluster` command | Perceptual hashes, BK-tree radius search and conservative collision guards |
+| Active learning | `prioritize` command | Uncertainty, dynamic class balance, visual diversity and biased-sampling boundaries |
 | Software quality | package, CLI, tests and CI | Public fixture, privacy checks and release build |
 | Communication | HTML reports and architecture docs | Turning model work into reviewable project evidence |
 
@@ -35,7 +36,8 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 5. Open `examples/calibration/output/calibration.html` to explain why each class receives a different threshold.
 6. Open `examples/consensus/output/consensus.html` to show unsupported AUTO candidates being downgraded.
 7. Open `examples/near_duplicates/output/near_duplicate_report.html` to show review compression and split leakage.
-8. Run `yolo-label-recovery doctor` to show environment diagnostics.
+8. Open `examples/prioritization/output/prioritization_report.html` to show a limited-budget six-class review queue.
+9. Run `yolo-label-recovery doctor` to show environment diagnostics.
 
 This demonstration works without a GPU or private model weights. A full teacher scan remains an optional second demonstration when suitable public weights and data are available.
 
@@ -72,6 +74,10 @@ No. It makes the prediction stronger evidence. The project retains REVIEW routin
 **Why not compare every image pair for near duplicates?**
 
 Brute force grows as `O(N²)`. The `cluster` command stores compact fingerprints and uses a BK-tree for Hamming-radius candidate search, then applies aHash, aspect-ratio and low-texture luminance safeguards. It still treats every group as review evidence rather than an automatic deletion decision.
+
+**Can the active review queue be used to report model accuracy?**
+
+No. It deliberately oversamples uncertain, rare and visually diverse cases, so its acceptance rate is biased. It is a remediation queue for finding useful failures per reviewer-hour. Accuracy still requires a separate random or stratified-random audit sample.
 
 ## Claims to avoid
 

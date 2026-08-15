@@ -33,3 +33,4 @@ def test_top_level_help_lists_model_free_analysis_commands(monkeypatch, capsys):
     output = capsys.readouterr().out
     assert "consensus PRIMARY_CSV VERIFIER_CSV" in output
     assert "cluster DATASET_ROOT" in output
+    assert "prioritize CANDIDATES_CSV DATASET_ROOT" in output

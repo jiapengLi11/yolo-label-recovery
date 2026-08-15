@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0
+
+- Added the CPU-only, read-only `prioritize` command for image-level active human-review queues.
+- Added normalized confidence entropy, dynamically decayed class rarity and greedy dHash/aHash visual diversity.
+- Added safe resolution of absolute and relative candidate image paths with dataset-boundary enforcement.
+- Added ranked image/candidate exports, full-pool evidence, failure isolation and a self-contained HTML report.
+- Added a reproducible imbalanced six-class fixture, static screenshot, bilingual documentation and CI coverage.
+
 ## 0.7.0
 
 - Added the model-free, read-only `cluster` command for perceptual near-duplicate review grouping.

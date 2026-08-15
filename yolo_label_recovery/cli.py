@@ -16,6 +16,7 @@ Commands:
   yolo-label-recovery calibrate REVIEWED_CSV --output-dir OUTPUT_DIR
   yolo-label-recovery consensus PRIMARY_CSV VERIFIER_CSV --output-dir OUTPUT_DIR
   yolo-label-recovery cluster DATASET_ROOT --output-dir OUTPUT_DIR
+  yolo-label-recovery prioritize CANDIDATES_CSV DATASET_ROOT --output-dir OUTPUT_DIR
   yolo-label-recovery doctor [--output environment.json]
 
 Examples:
@@ -25,6 +26,7 @@ Examples:
   yolo-label-recovery calibrate reviewed.csv --output-dir calibration
   yolo-label-recovery consensus primary.csv verifier.csv --output-dir consensus
   yolo-label-recovery cluster datasets/example --output-dir near-duplicates
+  yolo-label-recovery prioritize candidates_review.csv datasets/example --output-dir priority
   yolo-label-recovery doctor
 """
 
@@ -86,6 +88,12 @@ def main() -> None:
         from .near_duplicates import main as cluster_main
 
         cluster_main(sys.argv[2:])
+        return
+
+    if command == "prioritize":
+        from .prioritization import main as prioritize_main
+
+        prioritize_main(sys.argv[2:])
         return
 
     if command == "doctor":

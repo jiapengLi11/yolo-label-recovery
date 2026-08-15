@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-15T14:06:16.460930+00:00",
+  "sources": {
+    "candidates_csv": "<redacted>/candidates_review.csv",
+    "dataset_root": "<redacted>/dataset"
+  },
+  "policy": {
+    "modes": [
+      "review"
+    ],
+    "classes": null,
+    "budget": 12,
+    "uncertainty": "normalized Bernoulli confidence entropy",
+    "rarity": "sqrt(minimum class count / class count), decayed by selected class coverage",
+    "diversity": "greedy minimum weighted dHash/aHash distance",
+    "uncertainty_weight": 0.45,
+    "rarity_weight": 0.2,
+    "diversity_weight": 0.35
+  },
+  "totals": {
+    "candidate_rows": 36,
+    "review_images": 36,
+    "selected_images": 12,
+    "unselected_images": 24,
+    "image_failures": 0,
+    "pool_classes": 6,
+    "selected_classes": 6
+  },
+  "class_distribution": {
+    "pool_candidates": {
+      "helmet": 8,
+      "person": 10,
+      "slipper": 4,
+      "smoking": 3,
+      "tractor": 5,
+      "vest": 6
+    },
+    "queue_candidates": {
+      "helmet": 2,
+      "person": 2,
+      "slipper": 2,
+      "smoking": 2,
+      "tractor": 2,
+      "vest": 2
+    }
+  },
+  "queue": [
+    {
+      "priority_rank": 1,
+      "priority_score": "0.996749",
+      "uncertainty_score": "0.992774",
+      "rarity_score": "1.000000",
+      "diversity_score": "1.000000",
+      "split": "train",
+      "image": "images/train/smoking_00.png",
+      "candidate_count": 1,
+      "candidate_classes": "smoking",
+      "min_confidence": "0.550000",
+      "max_confidence": "0.550000"
+    },
+    {
+      "priority_rank": 2,
+      "priority_score": "0.719141",
+      "uncertainty_score": "0.997402",
+      "rarity_score": "0.774597",
+      "diversity_score": "0.329688",
+      "split": "train",
+      "image": "images/train/tractor_04.png",
+      "candidate_count": 1,
+      "candidate_classes": "tractor",
+      "min_confidence": "0.470000",
+      "max_confidence": "0.470000"
+    },
+    {
+      "priority_rank": 3,
+      "priority_score": "0.668228",
+      "uncertainty_score": "0.985815",
+      "rarity_score": "0.866025",
+      "diversity_score": "0.146875",
+      "split": "train",
+      "image": "images/train/slipper_03.jpg",
+      "candidate_count": 1,
+      "candidate_classes": "slipper",
+      "min_confidence": "0.430000",
+      "max_confidence": "0.430000"
+    },
+    {
+      "priority_rank": 4,
+      "priority_score": "0.638676",
+      "uncertainty_score": "0.992774",
+      "rarity_score": "0.612372",
+      "diversity_score": "0.198437",
+      "split": "train",
+      "image": "images/train/helmet_06.png",
+      "candidate_count": 1,
+      "candidate_classes": "helmet",
+      "min_confidence": "0.550000",
+      "max_confidence": "0.550000"
+    },
+    {
+      "priority_rank": 5,
+      "priority_score": "0.637380",
+      "uncertainty_score": "0.985815",
+      "rarity_score": "0.547723",
+      "diversity_score": "0.240625",
+      "split": "train",
+      "image": "images/train/person_09.jpg",
+      "candidate_count": 1,
+      "candidate_classes": "person",
+      "min_confidence": "0.430000",
+      "max_confidence": "0.430000"
+    },
+    {
+      "priority_rank": 6,
+      "priority_score": "0.630120",
+      "uncertainty_score": "0.999711",
+      "rarity_score": "0.707107",
+      "diversity_score": "0.110937",
+      "split": "train",
+      "image": "images/train/vest_05.jpg",
+      "candidate_count": 1,
+      "candidate_classes": "vest",
+      "min_confidence": "0.510000",
+      "max_confidence": "0.510000"
+    },
+    {
+      "priority_rank": 7,
+      "priority_score": "0.590549",
+      "uncertainty_score": "0.998846",
+      "rarity_score": "0.612372",
+      "diversity_score": "0.053125",
+      "split": "train",
+      "image": "images/train/slipper_00.png",
+      "candidate_count": 1,
+      "candidate_classes": "slipper",
+      "min_confidence": "0.520000",
+      "max_confidence": "0.520000"
+    },
+    {
+      "priority_rank": 8,
+      "priority_score": "0.579456",
+      "uncertainty_score": "0.997402",
+      "rarity_score": "0.500000",
+      "diversity_score": "0.087500",
+      "split": "train",
+      "image": "images/train/vest_01.jpg",
+      "candidate_count": 1,
+      "candidate_classes": "vest",
+      "min_confidence": "0.530000",
+      "max_confidence": "0.530000"
+    },
+    {
+      "priority_rank": 9,
+      "priority_score": "0.574516",
+      "uncertainty_score": "0.985815",
+      "rarity_score": "0.433013",
+      "diversity_score": "0.126562",
+      "split": "train",
+      "image": "images/train/helmet_02.png",
+      "candidate_count": 1,
+      "candidate_classes": "helmet",
+      "min_confidence": "0.570000",
+      "max_confidence": "0.570000"
+    },
+    {
+      "priority_rank": 10,
+      "priority_score": "0.573425",
+      "uncertainty_score": "0.998846",
+      "rarity_score": "0.387298",
+      "diversity_score": "0.132812",
+      "split": "train",
+      "image": "images/train/person_06.png",
+      "candidate_count": 1,
+      "candidate_classes": "person",
+      "min_confidence": "0.520000",
+      "max_confidence": "0.520000"
+    },
+    {
+      "priority_rank": 11,
+      "priority_score": "0.572540",
+      "uncertainty_score": "0.958042",
+      "rarity_score": "0.707107",
+      "diversity_score": "0.000000",
+      "split": "train",
+      "image": "images/train/smoking_01.jpg",
+      "candidate_count": 1,
+      "candidate_classes": "smoking",
+      "min_confidence": "0.620000",
+      "max_confidence": "0.620000"
+    },
+    {
+      "priority_rank": 12,
+      "priority_score": "0.563243",
+      "uncertainty_score": "0.999711",
+      "rarity_score": "0.547723",
+      "diversity_score": "0.010937",
+      "split": "train",
+      "image": "images/train/tractor_00.png",
+      "candidate_count": 1,
+      "candidate_classes": "tractor",
+      "min_confidence": "0.490000",
+      "max_confidence": "0.490000"
+    }
+  ],
+  "failures": []
+}
