@@ -9,9 +9,31 @@
 
 A safe, auditable and memory-efficient multi-teacher pipeline for recovering missing annotations in YOLO datasets.
 
-![Generated quality report](docs/assets/report-preview.png)
-
 This project was extracted from an industrial safety-vision workflow. It uses one detector per class to scan a multi-class dataset, identifies high-confidence predictions that are not covered by existing labels, and writes additions to a new label tree without modifying the source dataset.
+
+## Pre-generated showcase
+
+No GPU, private dataset or live command is needed to inspect these results. Both screenshots were generated from committed synthetic fixtures. They demonstrate behavior and report structure, not production accuracy.
+
+### Model-free dataset audit
+
+![Pre-generated YOLO dataset audit](docs/assets/audit-preview.png)
+
+The fixture intentionally contains one invalid class ID, one orphan label and one exact image duplicated across train/val. The audit correctly returns `FAIL`, `2` critical issues, `1` warning and `1` cross-split duplicate group.
+
+### Multi-teacher recovery report
+
+![Pre-generated multi-teacher quality report](docs/assets/report-preview.png)
+
+| Evidence | Pre-generated result |
+|---|---:|
+| Image-model scans | 3,600 |
+| Specialist teachers | 3 |
+| AUTO / REVIEW examples | 3 / 3 |
+| Initial batch | 32 |
+| Stable batches | 32 / 16 / 8 |
+| Simulated OOM retries | 3 |
+| Source labels modified | No |
 
 ## Why this project exists
 

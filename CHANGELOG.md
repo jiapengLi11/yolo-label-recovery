@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added pre-generated, path-redacted audit and recovery screenshots to both README languages for offline presentation.
+
 ## 0.3.1
 
 - Added a complete Simplified Chinese README and interview portfolio guide.
