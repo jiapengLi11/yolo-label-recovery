@@ -1,5 +1,10 @@
 # YOLO Label Recovery
 
+[![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/jiapengLi11/yolo-label-recovery)](https://github.com/jiapengLi11/yolo-label-recovery/releases)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-16a085.svg)](LICENSE)
+
 A safe, auditable and memory-efficient multi-teacher pipeline for recovering missing annotations in YOLO datasets.
 
 ![Generated quality report](docs/assets/report-preview.png)
