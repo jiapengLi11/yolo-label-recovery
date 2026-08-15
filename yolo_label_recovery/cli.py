@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import sys
 
 from . import __version__
@@ -22,6 +23,19 @@ Examples:
 """
 
 
+def _load_pipeline():
+    try:
+        return importlib.import_module("autolabel_with_single_class_models")
+    except ModuleNotFoundError as error:
+        if error.name in {"cv2", "torch", "ultralytics"}:
+            raise SystemExit(
+                "The 'run' command requires the optional inference dependencies.\n"
+                "Install a CUDA-compatible PyTorch build, then run:\n"
+                "  python -m pip install -e \".[inference]\""
+            ) from error
+        raise
+
+
 def main() -> None:
     if len(sys.argv) < 2 or sys.argv[1] in {"-h", "--help"}:
         print(USAGE)
@@ -32,7 +46,7 @@ def main() -> None:
 
     command = sys.argv[1]
     if command == "run":
-        import autolabel_with_single_class_models as pipeline
+        pipeline = _load_pipeline()
 
         sys.argv = [sys.argv[0], *sys.argv[2:]]
         pipeline.main()

@@ -1,0 +1,4 @@
+# Install a CUDA-compatible PyTorch build separately for the target machine.
+-r requirements.txt
+ultralytics>=8.4.33,<9
+opencv-python>=4.8

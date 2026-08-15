@@ -17,6 +17,8 @@ The roadmap separates implemented behavior from ideas that still need evidence. 
 - Exact duplicate hashing with cross-split leakage detection.
 - Runtime doctor command and machine-readable run manifest.
 - Public synthetic failure fixture for a reproducible demonstration.
+- Bilingual English/Simplified Chinese landing page and interview guide.
+- Lightweight audit/report installation separated from optional GPU inference dependencies.
 
 ## Planned for 0.4
 

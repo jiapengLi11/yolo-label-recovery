@@ -1,5 +1,7 @@
 # YOLO Label Recovery
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 [![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jiapengLi11/yolo-label-recovery)](https://github.com/jiapengLi11/yolo-label-recovery/releases)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
@@ -69,13 +71,21 @@ yolo-label-recovery doctor --output environment.json --redact-paths
 
 ## Quick start
 
+Install only the lightweight audit/report tools (no PyTorch or Ultralytics download):
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
 python -m pip install -e .
 
-# Install the CUDA-compatible PyTorch build required by the target GPU first.
+yolo-label-recovery audit D:\data\mining-safety --output-dir D:\data\audit-001 --hash-images --check-images
+```
+
+For GPU-assisted label recovery, first install the CUDA-compatible PyTorch build required by the target GPU, then install the inference extra:
+
+```powershell
+python -m pip install -e ".[inference]"
+
 yolo-label-recovery run `
   --dataset-root D:\data\mining-safety `
   --out-root D:\data\autolabel_run_001 `
@@ -185,6 +195,7 @@ See:
 - [Data governance](docs/DATA_GOVERNANCE.md)
 - [Interview presentation](docs/INTERVIEW_STORY.md)
 - [Portfolio and interview guide](docs/PORTFOLIO_GUIDE.md)
+- [Portfolio and interview guide (Simplified Chinese)](docs/PORTFOLIO_GUIDE.zh-CN.md)
 - [Detection model card template](docs/MODEL_CARD_TEMPLATE.md)
 - [Architecture decisions](docs/adr/0001-immutable-derived-labels.md)
 - [Roadmap](docs/ROADMAP.md)
@@ -199,3 +210,5 @@ python -m py_compile autolabel_with_single_class_models.py
 python tests\run_smoke_tests.py
 pytest
 ```
+
+For a complete development environment, use `python -m pip install -e ".[inference,dev]"`.

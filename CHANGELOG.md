@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1
+
+- Added a complete Simplified Chinese README and interview portfolio guide.
+- Added English/Chinese language navigation to the repository landing page.
+- Split lightweight audit/report dependencies from optional GPU inference dependencies.
+- Added an actionable CLI error when `run` is used without the `inference` extra.
+- Added tests for optional inference dependency loading.
+
 ## 0.3.0
 
 - Added the model-free `audit` command for YOLO schema, label, image and split-integrity checks.
