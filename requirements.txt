@@ -1,0 +1,7 @@
+# Install a CUDA-compatible PyTorch build separately for the target machine.
+ultralytics>=8.4.33,<9
+PyYAML>=6.0
+opencv-python>=4.8
+Pillow>=10.0
+pytest>=8.0
+

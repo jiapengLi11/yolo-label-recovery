@@ -1,0 +1,42 @@
+{
+  "dataset_root": "examples/demo_dataset",
+  "out_root": "examples/demo_output",
+  "dry_run": false,
+  "device": "cuda:0",
+  "imgsz": 832,
+  "batch": 32,
+  "classes": ["person", "helmet", "smoking"],
+  "stats": {
+    "person": {
+      "images_scanned": 1200,
+      "matched_existing": 842,
+      "duplicate_candidates": 9,
+      "auto_added": 128,
+      "review_candidates": 34,
+      "initial_batch": 32,
+      "stable_batch": 32,
+      "oom_retries": 0
+    },
+    "helmet": {
+      "images_scanned": 1200,
+      "matched_existing": 611,
+      "duplicate_candidates": 5,
+      "auto_added": 91,
+      "review_candidates": 27,
+      "initial_batch": 32,
+      "stable_batch": 16,
+      "oom_retries": 1
+    },
+    "smoking": {
+      "images_scanned": 1200,
+      "matched_existing": 203,
+      "duplicate_candidates": 2,
+      "auto_added": 74,
+      "review_candidates": 41,
+      "initial_batch": 32,
+      "stable_batch": 8,
+      "oom_retries": 2
+    }
+  }
+}
+

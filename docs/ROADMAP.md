@@ -1,0 +1,40 @@
+# Roadmap
+
+The roadmap separates implemented behavior from ideas that still need evidence. It is intentionally conservative: an item moves to "completed" only after tests and a reproducible example exist.
+
+## Completed in 0.3
+
+- Sequential multi-teacher scanning with one YOLO model resident on the GPU at a time.
+- Per-class AUTO and REVIEW thresholds.
+- Existing-label IoU filtering and candidate deduplication.
+- Read-only source labels with a separate derived label tree.
+- Streaming CSV output and bounded visualization samples.
+- Adaptive OOM recovery with transactional batch commits.
+- Atomic checkpoints and idempotent resume.
+- Self-contained HTML quality report.
+- Installable CLI, tests, wheel build and GitHub Actions CI.
+- Model-free dataset audit with label-schema, image-integrity and orphan-label checks.
+- Exact duplicate hashing with cross-split leakage detection.
+- Runtime doctor command and machine-readable run manifest.
+- Public synthetic failure fixture for a reproducible demonstration.
+
+## Planned for 0.4
+
+- Teacher adapter interface for non-Ultralytics detectors.
+- Threshold calibration utilities using an audited validation sample.
+- Precision-oriented benchmark fixtures for AUTO and REVIEW queues.
+- Optional Parquet candidate output for very large scans.
+
+## Research backlog
+
+- Cross-teacher agreement as an additional AUTO gate.
+- Active-learning prioritization using uncertainty and visual diversity.
+- Near-duplicate image grouping before human review.
+- Review UI integrations through an exporter/importer boundary.
+
+## Non-goals
+
+- Treating teacher predictions as ground truth without audit.
+- Modifying source labels in place.
+- Shipping private datasets or trained weights.
+- Claiming that one threshold policy transfers safely to every domain.

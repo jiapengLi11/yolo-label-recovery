@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17364d"/><stop offset="1" stop-color="#496b73"/></linearGradient></defs>
+  <rect width="640" height="480" fill="url(#bg)"/>
+  <rect x="45" y="330" width="550" height="90" rx="8" fill="#9c8569"/>
+  <circle cx="320" cy="125" r="48" fill="#d6aa7d"/><rect x="256" y="172" width="128" height="190" rx="38" fill="#e9b949"/>
+  <rect x="238" y="68" width="164" height="80" rx="30" fill="#e44b4b"/>
+  <rect x="220" y="58" width="200" height="330" fill="none" stroke="#24d6c7" stroke-width="7"/>
+  <rect x="220" y="24" width="170" height="34" fill="#24d6c7"/><text x="230" y="48" font-family="Segoe UI" font-size="22" fill="#082c35">AUTO person 0.94</text>
+</svg>
+

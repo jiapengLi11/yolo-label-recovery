@@ -1,0 +1,5 @@
+split,image,label,class_name,class_id,conf,mode,max_iou_same_class,cx,cy,w,h
+train,demo_person.jpg,demo_person.txt,person,0,0.94,auto,0.08,0.50,0.52,0.30,0.72
+train,demo_helmet.jpg,demo_helmet.txt,helmet,1,0.87,auto,0.12,0.51,0.24,0.18,0.16
+train,demo_smoking.jpg,demo_smoking.txt,smoking,5,0.82,auto,0.05,0.63,0.36,0.12,0.15
+

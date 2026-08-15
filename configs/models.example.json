@@ -1,0 +1,9 @@
+{
+  "person": {"path": "weights/person.pt", "pred_class": 0},
+  "helmet": {"path": "weights/helmet.pt", "pred_class": 0},
+  "vest": {"path": "weights/vest.pt", "pred_class": 0},
+  "tractor": {"path": "weights/tractor.pt", "pred_class": 0},
+  "slipper": {"path": "weights/slipper.pt", "pred_class": 0},
+  "smoking": {"path": "weights/smoking.pt", "pred_class": 0}
+}
+

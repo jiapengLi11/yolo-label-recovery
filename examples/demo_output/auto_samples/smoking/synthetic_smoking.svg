@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#263746"/><circle cx="330" cy="180" r="90" fill="#d3a077"/><rect x="260" y="270" width="150" height="210" fill="#6f8ea3"/>
+  <path d="M390 260c70-60 90-35 120-5" fill="none" stroke="#d3a077" stroke-width="28" stroke-linecap="round"/>
+  <rect x="486" y="234" width="82" height="12" rx="6" fill="#f0ede6"/><circle cx="568" cy="240" r="8" fill="#e25d33"/>
+  <rect x="455" y="205" width="130" height="85" fill="none" stroke="#e255a1" stroke-width="7"/>
+  <rect x="390" y="170" width="195" height="35" fill="#e255a1"/><text x="400" y="195" font-family="Segoe UI" font-size="22" fill="white">AUTO smoking 0.82</text>
+</svg>
+

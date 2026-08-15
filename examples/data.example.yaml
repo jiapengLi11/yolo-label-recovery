@@ -1,0 +1,13 @@
+path: /absolute/path/to/dataset
+train: images/train
+val: images/val
+test: images/test
+nc: 6
+names:
+  0: person
+  1: helmet
+  2: vest
+  3: tractor
+  4: slipper
+  5: smoking
+

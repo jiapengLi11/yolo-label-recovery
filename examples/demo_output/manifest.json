@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "tool": "yolo-label-recovery",
+  "tool_version": "0.3.0",
+  "status": "complete",
+  "fixture": "synthetic public demo",
+  "environment": {
+    "python": "3.11.13",
+    "packages": {
+      "ultralytics": "8.4.33",
+      "torch": "2.7.0"
+    },
+    "cuda": {
+      "available": true,
+      "torch_cuda_version": "12.8",
+      "device_count": 1,
+      "devices": [
+        {
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 5090",
+          "total_memory_bytes": 35011436544,
+          "compute_capability": "12.0"
+        }
+      ]
+    }
+  }
+}

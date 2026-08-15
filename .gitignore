@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Local data and model artifacts
+datasets/
+data/
+weights/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.safetensors
+
+# Generated outputs and logs
+runs/
+outputs/
+artifacts/
+logs/
+*.log
+*.csv
+*.cache
+
+# Local configuration and machine-specific paths
+config.local.*
+*.local.json
+.env
+.demo-*/
+
+# IDE and OS files
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+
+# Keep the synthetic report fixture used by the public demo.
+!examples/demo_output/*.csv

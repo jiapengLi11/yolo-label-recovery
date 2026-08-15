@@ -1,0 +1,66 @@
+# Portfolio and interview guide
+
+This guide turns the repository into evidence of engineering decisions rather than a list of scripts.
+
+## 90-second project pitch
+
+I worked on a multi-class safety-detection dataset where source datasets had been annotated for different tasks. In combined scenes, one class could be labeled while another visible class was missing. Those omissions become false negatives during training.
+
+I built a conservative label-recovery pipeline around specialist single-class teacher models. It first audits the YOLO dataset without a GPU, then loads one teacher at a time, streams inference in bounded batches, matches predictions only against same-class labels, and routes unmatched predictions to AUTO, REVIEW or IGNORE using class-specific thresholds. It never edits source labels.
+
+The difficult part was operational reliability on a long `K x N` scan. I added transactional adaptive batching after CUDA OOM, atomic checkpoints, signature-validated resume, idempotent CSV/label writes, environment manifests and HTML evidence reports. The repository includes a synthetic public demo, tests and CI while excluding private data and weights.
+
+## Capability evidence
+
+| Capability | Repository evidence | What to explain |
+|---|---|---|
+| Data engineering | `audit` command | Schema validation, orphan labels, corrupt images and split leakage |
+| Computer vision | IoU matching and class mapping | Why same-class GT matching differs from NMS deduplication |
+| GPU engineering | Sequential teachers and adaptive batch | Peak memory versus total compute; safe OOM retries |
+| Reliability | `state.json` and idempotent writes | Batch commit boundary and crash replay semantics |
+| MLOps | `doctor` and `manifest.json` | Reproducing CUDA, package and configuration state |
+| Human-in-the-loop ML | AUTO/REVIEW/IGNORE routing | Precision-first thresholds and audit evidence |
+| Software quality | package, CLI, tests and CI | Public fixture, privacy checks and release build |
+| Communication | HTML reports and architecture docs | Turning model work into reviewable project evidence |
+
+## Live demonstration
+
+1. Run `python examples/create_synthetic_dataset.py --output .demo-dataset`.
+2. Run `yolo-label-recovery audit .demo-dataset --output-dir .demo-audit --hash-images --check-images`.
+3. Open `.demo-audit/dataset_audit.html` and point out the intentionally injected class error, orphan label and cross-split duplicate.
+4. Open `examples/demo_output/report.html` to show the recovery quality report without exposing project data.
+5. Run `yolo-label-recovery doctor` to show environment diagnostics.
+
+This demonstration works without a GPU or private model weights. A full teacher scan remains an optional second demonstration when suitable public weights and data are available.
+
+## Design questions to expect
+
+**Why not overwrite the labels directly?**
+
+Source immutability makes experiments reversible, reviewable and safe to compare. A derived label tree can be deleted without losing the annotation baseline.
+
+**Why six passes instead of loading all teachers?**
+
+The compute remains approximately `K x N`, but loading one model at a time bounds peak GPU memory. This is a deliberate throughput/reliability tradeoff.
+
+**Why are AUTO thresholds different by class?**
+
+Teacher calibration and object difficulty differ. Small smoking/slipper targets should not inherit a threshold justified by a large tractor detector. Thresholds are policy and need validation data.
+
+**What makes resume safe?**
+
+The state advances only after the current batch's labels and CSV rows are flushed. If a crash occurs between output and state commit, replay checks stable candidate keys and exact label lines, preventing duplication.
+
+**Does high confidence make a prediction ground truth?**
+
+No. It makes the prediction stronger evidence. The project retains REVIEW routing, visual samples and an audit trail because confidence alone does not prove correctness under domain shift.
+
+## Claims to avoid
+
+- Do not claim the teachers eliminate all missing labels.
+- Do not claim thresholds are universal.
+- Do not quote private dataset metrics without permission and a precise test definition.
+- Do not describe exact hashing as perceptual near-duplicate detection.
+- Do not imply the synthetic demo is a production benchmark.
+
+Honest scope makes the real engineering contributions more credible.
