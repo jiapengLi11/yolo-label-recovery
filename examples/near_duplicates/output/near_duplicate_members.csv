@@ -1,0 +1,8 @@
+﻿cluster_id,cluster_size,cross_split,split,path,is_representative,dhash,ahash,dhash_distance_to_representative,width,height,aspect_ratio,mean_luma,luma_stddev
+ND-00001,3,true,test,images/test/mine_brighter.jpg,false,052a06b431125670,000002fefffbc3ff,5,640,420,1.523810,111.092,31.566
+ND-00001,3,true,train,images/train/mine_original.png,false,010a063431125620,000002fefffbc3ff,0,640,420,1.523810,101.671,29.000
+ND-00001,3,true,val,images/val/mine_resized.jpg,true,010a063431125620,000002fefffbc3ff,0,960,630,1.523810,101.680,28.994
+ND-00002,2,true,test,images/test/tractor_exact_copy.png,false,3006da1a362f9393,ffffffcf83830000,0,560,360,1.555556,161.549,56.268
+ND-00002,2,true,val,images/val/tractor.png,true,3006da1a362f9393,ffffffcf83830000,0,560,360,1.555556,161.549,56.268
+ND-00003,2,false,train,images/train/worker_original.png,true,4d969696969696b2,e7c3c3c3c3c3c3db,0,480,640,0.750000,204.475,41.094
+ND-00003,2,false,train,images/train/worker_web.jpg,false,4d969696969696b2,e7c3c3c3c3c3c3db,0,360,480,0.750000,204.465,41.124

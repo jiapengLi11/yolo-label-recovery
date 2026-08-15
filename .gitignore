@@ -46,3 +46,4 @@ Desktop.ini
 !examples/calibration/output/*.csv
 !examples/consensus/*.csv
 !examples/consensus/output/*.csv
+!examples/near_duplicates/output/*.csv

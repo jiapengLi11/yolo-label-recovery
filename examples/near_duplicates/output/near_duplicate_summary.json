@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-15T13:47:26.334152+00:00",
+  "dataset_root": "<redacted>/ylr-near-duplicates-v07",
+  "splits": [
+    "train",
+    "val",
+    "test"
+  ],
+  "policy": {
+    "max_dhash_distance": 6,
+    "max_ahash_distance": 10,
+    "max_aspect_delta": 0.05,
+    "low_texture_stddev": 8.0,
+    "low_texture_mean_delta": 12.0,
+    "min_cluster_size": 2,
+    "clustering": "BK-tree candidate search plus connected components"
+  },
+  "totals": {
+    "images_discovered": 11,
+    "images_fingerprinted": 10,
+    "fingerprint_failures": 1,
+    "candidate_hash_comparisons": 6,
+    "clusters": 3,
+    "clustered_images": 7,
+    "review_representatives": 3,
+    "review_rows_avoided": 4,
+    "cross_split_clusters": 2,
+    "cross_split_images": 5,
+    "largest_cluster": 3
+  },
+  "clusters": [
+    {
+      "cluster_id": "ND-00001",
+      "size": 3,
+      "splits": [
+        "test",
+        "train",
+        "val"
+      ],
+      "cross_split": true,
+      "max_dhash_distance_to_representative": 5,
+      "representative": {
+        "split": "val",
+        "path": "images/val/mine_resized.jpg",
+        "dhash": "010a063431125620",
+        "ahash": "000002fefffbc3ff",
+        "width": 960,
+        "height": 630,
+        "mean_luma": 101.68017578125,
+        "luma_stddev": 28.99359704314646
+      },
+      "member_paths": [
+        "images/test/mine_brighter.jpg",
+        "images/train/mine_original.png",
+        "images/val/mine_resized.jpg"
+      ]
+    },
+    {
+      "cluster_id": "ND-00002",
+      "size": 2,
+      "splits": [
+        "test",
+        "val"
+      ],
+      "cross_split": true,
+      "max_dhash_distance_to_representative": 0,
+      "representative": {
+        "split": "val",
+        "path": "images/val/tractor.png",
+        "dhash": "3006da1a362f9393",
+        "ahash": "ffffffcf83830000",
+        "width": 560,
+        "height": 360,
+        "mean_luma": 161.548583984375,
+        "luma_stddev": 56.267550065536994
+      },
+      "member_paths": [
+        "images/test/tractor_exact_copy.png",
+        "images/val/tractor.png"
+      ]
+    },
+    {
+      "cluster_id": "ND-00003",
+      "size": 2,
+      "splits": [
+        "train"
+      ],
+      "cross_split": false,
+      "max_dhash_distance_to_representative": 0,
+      "representative": {
+        "split": "train",
+        "path": "images/train/worker_original.png",
+        "dhash": "4d969696969696b2",
+        "ahash": "e7c3c3c3c3c3c3db",
+        "width": 480,
+        "height": 640,
+        "mean_luma": 204.474853515625,
+        "luma_stddev": 41.094134414528355
+      },
+      "member_paths": [
+        "images/train/worker_original.png",
+        "images/train/worker_web.jpg"
+      ]
+    }
+  ],
+  "failures": [
+    {
+      "split": "test",
+      "path": "images/test/corrupt.jpg",
+      "error": "cannot identify image file 'C:\\\\Users\\\\22842\\\\AppData\\\\Local\\\\Temp\\\\ylr-near-duplicates-v07\\\\images\\\\test\\\\corrupt.jpg'"
+    }
+  ]
+}

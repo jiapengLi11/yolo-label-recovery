@@ -25,9 +25,11 @@ def test_load_pipeline_returns_imported_module(monkeypatch):
     assert cli._load_pipeline() is pipeline
 
 
-def test_top_level_help_lists_consensus(monkeypatch, capsys):
+def test_top_level_help_lists_model_free_analysis_commands(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["yolo-label-recovery", "--help"])
 
     cli.main()
 
-    assert "consensus PRIMARY_CSV VERIFIER_CSV" in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "consensus PRIMARY_CSV VERIFIER_CSV" in output
+    assert "cluster DATASET_ROOT" in output

@@ -40,6 +40,11 @@ jobs:
           python examples/create_consensus_fixture.py --output-dir /tmp/ylr-consensus-fixture
           yolo-label-recovery consensus /tmp/ylr-consensus-fixture/primary_candidates.csv /tmp/ylr-consensus-fixture/verifier_candidates.csv --output-dir /tmp/ylr-consensus --agreement-iou 0.50 --verifier-min-confidence 0.50 --redact-paths
           python -c "import json; d=json.load(open('/tmp/ylr-consensus/consensus.json')); assert d['totals']['primary_auto']==72 and d['totals']['agreed_auto']==48 and d['totals']['downgraded_to_review']==24"
+      - name: Run perceptual near-duplicate demo
+        run: |
+          python examples/create_near_duplicate_fixture.py --output /tmp/ylr-near-duplicates
+          yolo-label-recovery cluster /tmp/ylr-near-duplicates --output-dir /tmp/ylr-near-duplicate-output --redact-paths
+          python -c "import json; d=json.load(open('/tmp/ylr-near-duplicate-output/near_duplicate_summary.json')); assert d['totals']['images_discovered']==11 and d['totals']['fingerprint_failures']==1 and d['totals']['clusters']==3 and d['totals']['clustered_images']==7 and d['totals']['cross_split_clusters']==2"
       - name: Build wheel
         run: python -m pip wheel --no-deps --wheel-dir dist .
       - name: Reject private artifacts

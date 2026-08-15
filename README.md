@@ -47,6 +47,12 @@ The public fixture contains `2,400` reviewed candidates across all six classes. 
 
 The public fixture contains `96` primary candidates across six classes. Of `72` primary AUTO candidates, `48` receive one-to-one spatial support from an independent verifier and remain AUTO; `24` are safely downgraded to REVIEW. The stage is model-free and adds no GPU memory pressure.
 
+### Perceptual near-duplicate review groups
+
+![Pre-generated perceptual near-duplicate report](docs/assets/near-duplicates-preview.png)
+
+The public fixture groups resize, JPEG recompression and brightness variants without merging black and white low-texture frames. It finds `3` groups containing `7` images, reduces first-pass review to `3` representatives and flags `2` groups crossing dataset splits.
+
 ## Why this project exists
 
 Multi-class datasets often contain combined scenes such as `person + helmet + smoking` or `person + slipper`. If the original annotation process focused on one target at a time, valid objects from other classes can be missing. Training a new multi-class model on incomplete labels can make the model learn the wrong supervision signal.
@@ -86,6 +92,7 @@ flowchart TD
 - A model-free audit catches malformed labels, corrupt images and exact train/val/test leakage before GPU work starts.
 - Audited candidate decisions can calibrate class-specific AUTO policies using a Wilson precision lower bound and REVIEW policies using positive recall.
 - Independent Teacher candidate streams can gate AUTO decisions with one-to-one spatial agreement without loading two models together.
+- Perceptual hashes, a BK-tree and conservative visual guards group repeated review work and expose near-duplicate split leakage.
 - Every scan records a local manifest with parameters, image inventory, package versions, CUDA and GPU metadata.
 
 ## One-minute public demo
@@ -139,6 +146,16 @@ yolo-label-recovery consensus primary_candidates.csv verifier_candidates.csv `
   --output-dir consensus `
   --agreement-iou 0.50 `
   --verifier-min-confidence 0.50 `
+  --redact-paths
+```
+
+Group perceptual near-duplicates without loading a model or changing source data:
+
+```powershell
+yolo-label-recovery cluster D:\data\mining-safety `
+  --output-dir D:\data\near-duplicate-audit `
+  --workers 4 `
+  --max-distance 6 `
   --redact-paths
 ```
 
@@ -258,6 +275,8 @@ See:
 - [Threshold calibration (Simplified Chinese)](docs/CALIBRATION.zh-CN.md)
 - [Cross-Teacher consensus](docs/CONSENSUS.md)
 - [Cross-Teacher consensus (Simplified Chinese)](docs/CONSENSUS.zh-CN.md)
+- [Perceptual near-duplicate grouping](docs/NEAR_DUPLICATES.md)
+- [Perceptual near-duplicate grouping (Simplified Chinese)](docs/NEAR_DUPLICATES.zh-CN.md)
 - [Interview presentation](docs/INTERVIEW_STORY.md)
 - [Portfolio and interview guide](docs/PORTFOLIO_GUIDE.md)
 - [Portfolio and interview guide (Simplified Chinese)](docs/PORTFOLIO_GUIDE.zh-CN.md)

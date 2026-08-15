@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+- Added the model-free, read-only `cluster` command for perceptual near-duplicate review grouping.
+- Added 64-bit dHash/aHash fingerprints, BK-tree radius search and deterministic connected components.
+- Added aspect-ratio and low-texture luminance safeguards to reduce false-positive groups.
+- Added cross-split near-duplicate leakage evidence, corrupt-image isolation and representative review exports.
+- Added a reproducible public fixture, self-contained HTML report, static screenshot, bilingual documentation and CI coverage.
+
 ## 0.6.0
 
 - Added the model-free `consensus` command for independent cross-Teacher AUTO verification.

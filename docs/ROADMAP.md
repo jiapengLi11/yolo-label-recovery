@@ -2,7 +2,7 @@
 
 The roadmap separates implemented behavior from ideas that still need evidence. It is intentionally conservative: an item moves to "completed" only after tests and a reproducible example exist.
 
-## Completed through 0.6
+## Completed through 0.7
 
 - Sequential multi-teacher scanning with one YOLO model resident on the GPU at a time.
 - Per-class AUTO and REVIEW thresholds.
@@ -27,8 +27,11 @@ The roadmap separates implemented behavior from ideas that still need evidence. 
 - Model-free cross-Teacher consensus gate with one-to-one spatial matching.
 - Conservative AUTO-to-REVIEW downgrade and agreed-only YOLO label export.
 - Public six-class consensus fixture, report and static portfolio evidence.
+- Perceptual near-duplicate grouping with dHash/aHash visual safeguards.
+- BK-tree candidate search, representative review exports and cross-split leakage evidence.
+- Public near-duplicate fixture, self-contained report and bilingual documentation.
 
-## Planned for 0.7
+## Planned for 0.8
 
 - Teacher adapter interface for non-Ultralytics detectors.
 - Precision-oriented benchmark fixtures for AUTO and REVIEW queues.
@@ -37,7 +40,7 @@ The roadmap separates implemented behavior from ideas that still need evidence. 
 ## Research backlog
 
 - Active-learning prioritization using uncertainty and visual diversity.
-- Near-duplicate image grouping before human review.
+- Diversity-aware active-learning queues beyond near-duplicate compression.
 - Review UI integrations through an exporter/importer boundary.
 
 ## Non-goals

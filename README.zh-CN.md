@@ -47,6 +47,12 @@
 
 公开样本包含六类共 `96` 个主 Teacher 候选。在 `72` 个主 AUTO 中，`48` 个得到独立验证 Teacher 的一对一空间支持并保留为 AUTO，另外 `24` 个安全降级到 REVIEW。该阶段不依赖模型推理，不会增加显存压力。
 
+### 感知近重复审核分组
+
+![预生成感知近重复报告](docs/assets/near-duplicates-preview.png)
+
+公开样例能够聚合缩放、JPEG 重压缩和亮度变化图片，同时不会错误合并纯黑与纯白低纹理帧。结果包含 `3` 组、共 `7` 张图片，只需优先审核 `3` 张代表图，并发现 `2` 组跨数据划分近重复。
+
 ## 为什么需要这个项目
 
 多类别数据集经常包含 `person + helmet + smoking`、`person + slipper` 等联合场景。如果原始标注工作每次只关注一个目标，图中其他类别的有效目标就可能漏标。使用不完整标签训练多类别模型时，这些目标会被当作背景，从而向模型传递错误监督信号。
@@ -86,6 +92,7 @@ flowchart TD
 - GPU 推理前先进行无模型审计，检查错误标签、损坏图片和 train/val/test 精确重复。
 - 使用人工审核候选校准分类别策略：AUTO 采用 Wilson 精度置信下限，REVIEW 采用正样本召回约束。
 - 使用独立 Teacher 候选流进行一对一空间一致性门控，无需同时加载两个模型。
+- 使用感知哈希、BK-tree 和保守视觉约束压缩重复审核工作，并发现跨划分近重复泄漏。
 - 每次扫描生成 manifest，记录参数、图片清单、依赖版本、CUDA 和 GPU 信息。
 
 ## 一分钟公开演示
@@ -139,6 +146,16 @@ yolo-label-recovery consensus primary_candidates.csv verifier_candidates.csv `
   --output-dir consensus `
   --agreement-iou 0.50 `
   --verifier-min-confidence 0.50 `
+  --redact-paths
+```
+
+无需模型且不修改源数据，即可聚类感知近重复图片：
+
+```powershell
+yolo-label-recovery cluster D:\data\mining-safety `
+  --output-dir D:\data\near-duplicate-audit `
+  --workers 4 `
+  --max-distance 6 `
   --redact-paths
 ```
 
@@ -258,6 +275,8 @@ out-root/
 - [阈值校准（英文）](docs/CALIBRATION.md)
 - [跨 Teacher 一致性门控（中文）](docs/CONSENSUS.zh-CN.md)
 - [跨 Teacher 一致性门控（英文）](docs/CONSENSUS.md)
+- [感知近重复聚类（中文）](docs/NEAR_DUPLICATES.zh-CN.md)
+- [感知近重复聚类（英文）](docs/NEAR_DUPLICATES.md)
 - [面试项目讲解](docs/INTERVIEW_STORY.md)
 - [作品集与面试指南（中文）](docs/PORTFOLIO_GUIDE.zh-CN.md)
 - [作品集与面试指南（英文）](docs/PORTFOLIO_GUIDE.md)

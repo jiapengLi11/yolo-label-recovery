@@ -1,0 +1,4 @@
+﻿cluster_id,cluster_size,cross_split,splits,representative_split,representative_path,max_dhash_distance_to_representative
+ND-00001,3,true,"test,train,val",val,images/val/mine_resized.jpg,5
+ND-00002,2,true,"test,val",val,images/val/tractor.png,0
+ND-00003,2,false,train,train,images/train/worker_original.png,0

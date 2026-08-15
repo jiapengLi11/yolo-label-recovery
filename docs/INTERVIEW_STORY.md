@@ -19,6 +19,7 @@ Long scans are checkpointed after every committed batch. Resume validates a run 
 - Hardlinks reduce disk duplication when building a trainable dataset.
 - Atomic checkpoint/resume avoids restarting completed teacher/split work.
 - The HTML report turns audit artifacts into a reviewable delivery and GitHub demo.
+- Perceptual near-duplicate grouping uses compact hashes and BK-tree radius search to reduce repeated review without loading all pixels or comparing every pair.
 - `doctor` and `manifest.json` make environment differences visible instead of leaving CUDA and dependency drift implicit.
 
 ## Honest limitation
