@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+- Added the model-free `consensus` command for independent cross-Teacher AUTO verification.
+- Added deterministic one-to-one spatial matching so one verifier box cannot approve multiple primary candidates.
+- Added conservative downgrade-to-REVIEW behavior for unsupported primary AUTO candidates.
+- Added optional agreed-only YOLO label additions, machine-readable summaries and a self-contained HTML report.
+- Added a reproducible six-class consensus fixture, static screenshot, bilingual documentation and CI coverage.
+
 ## 0.5.0
 
 - Added Wilson score precision lower bounds for confidence-aware AUTO threshold calibration.

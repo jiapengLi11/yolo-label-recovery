@@ -14,6 +14,7 @@ Commands:
   yolo-label-recovery report OUTPUT_ROOT [--output report.html]
   yolo-label-recovery audit DATASET_ROOT [audit options]
   yolo-label-recovery calibrate REVIEWED_CSV --output-dir OUTPUT_DIR
+  yolo-label-recovery consensus PRIMARY_CSV VERIFIER_CSV --output-dir OUTPUT_DIR
   yolo-label-recovery doctor [--output environment.json]
 
 Examples:
@@ -21,6 +22,7 @@ Examples:
   yolo-label-recovery report outputs/run-001
   yolo-label-recovery audit datasets/example --hash-images --check-images
   yolo-label-recovery calibrate reviewed.csv --output-dir calibration
+  yolo-label-recovery consensus primary.csv verifier.csv --output-dir consensus
   yolo-label-recovery doctor
 """
 
@@ -70,6 +72,12 @@ def main() -> None:
         from .calibration import main as calibration_main
 
         calibration_main(sys.argv[2:])
+        return
+
+    if command == "consensus":
+        from .consensus import main as consensus_main
+
+        consensus_main(sys.argv[2:])
         return
 
     if command == "doctor":

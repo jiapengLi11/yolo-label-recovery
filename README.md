@@ -13,7 +13,7 @@ This project was extracted from an industrial safety-vision workflow. It uses on
 
 ## Pre-generated showcase
 
-No GPU, private dataset or live command is needed to inspect these results. Both screenshots were generated from committed synthetic fixtures. They demonstrate behavior and report structure, not production accuracy.
+No GPU, private dataset or live command is needed to inspect these results. The screenshots were generated from committed synthetic fixtures. They demonstrate behavior and report structure, not production accuracy.
 
 ### Model-free dataset audit
 
@@ -41,6 +41,12 @@ The fixture intentionally contains one invalid class ID, one orphan label and on
 
 The public fixture contains `2,400` reviewed candidates across all six classes. AUTO requires the `95%` Wilson lower confidence bound for precision to reach `95%`, while REVIEW preserves `90%` of audited positives. All six classes produce statistically supported policies. AUTO thresholds range from `0.732` for tractor to `0.859` for smoking, demonstrating why one global confidence threshold is unsafe.
 
+### Cross-Teacher consensus gate
+
+![Pre-generated cross-Teacher consensus report](docs/assets/consensus-preview.png)
+
+The public fixture contains `96` primary candidates across six classes. Of `72` primary AUTO candidates, `48` receive one-to-one spatial support from an independent verifier and remain AUTO; `24` are safely downgraded to REVIEW. The stage is model-free and adds no GPU memory pressure.
+
 ## Why this project exists
 
 Multi-class datasets often contain combined scenes such as `person + helmet + smoking` or `person + slipper`. If the original annotation process focused on one target at a time, valid objects from other classes can be missing. Training a new multi-class model on incomplete labels can make the model learn the wrong supervision signal.
@@ -58,8 +64,11 @@ flowchart TD
     E -->|"Possible missing object"| G["Confidence routing"]
     G --> H["IGNORE"]
     G --> I["REVIEW + audit CSV"]
-    G --> J["AUTO + derived label tree"]
-    J --> K["Trainable YOLO dataset"]
+    G --> J["AUTO candidate"]
+    J --> M{"Optional verifier agreement"}
+    M -->|"supported"| K["Derived label tree"]
+    M -->|"unsupported"| I
+    K --> N["Trainable YOLO dataset"]
     I --> L["HTML report and class-wise samples"]
     J --> L
 ```
@@ -76,6 +85,7 @@ flowchart TD
 - Review images are grouped by unique image so multiple candidates from one image remain visible together.
 - A model-free audit catches malformed labels, corrupt images and exact train/val/test leakage before GPU work starts.
 - Audited candidate decisions can calibrate class-specific AUTO policies using a Wilson precision lower bound and REVIEW policies using positive recall.
+- Independent Teacher candidate streams can gate AUTO decisions with one-to-one spatial agreement without loading two models together.
 - Every scan records a local manifest with parameters, image inventory, package versions, CUDA and GPU metadata.
 
 ## One-minute public demo
@@ -119,6 +129,16 @@ yolo-label-recovery calibrate reviewed_candidates.csv `
   --auto-confidence-level 0.95 `
   --target-review-recall 0.90 `
   --min-auto-samples 20 `
+  --redact-paths
+```
+
+Gate primary AUTO candidates with an independent verifier, without a GPU dependency:
+
+```powershell
+yolo-label-recovery consensus primary_candidates.csv verifier_candidates.csv `
+  --output-dir consensus `
+  --agreement-iou 0.50 `
+  --verifier-min-confidence 0.50 `
   --redact-paths
 ```
 
@@ -236,6 +256,8 @@ See:
 - [Data governance](docs/DATA_GOVERNANCE.md)
 - [Threshold calibration](docs/CALIBRATION.md)
 - [Threshold calibration (Simplified Chinese)](docs/CALIBRATION.zh-CN.md)
+- [Cross-Teacher consensus](docs/CONSENSUS.md)
+- [Cross-Teacher consensus (Simplified Chinese)](docs/CONSENSUS.zh-CN.md)
 - [Interview presentation](docs/INTERVIEW_STORY.md)
 - [Portfolio and interview guide](docs/PORTFOLIO_GUIDE.md)
 - [Portfolio and interview guide (Simplified Chinese)](docs/PORTFOLIO_GUIDE.zh-CN.md)

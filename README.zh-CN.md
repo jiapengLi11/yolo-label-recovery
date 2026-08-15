@@ -13,7 +13,7 @@
 
 ## 预生成展示结果
 
-查看以下结果不需要 GPU、私有数据集或现场执行命令。两张截图均由仓库内的合成测试数据生成，用于展示工具行为和报告结构，不代表生产数据精度。
+查看以下结果不需要 GPU、私有数据集或现场执行命令。以下截图均由仓库内的合成测试数据生成，用于展示工具行为和报告结构，不代表生产数据精度。
 
 ### 无模型数据集审计
 
@@ -41,6 +41,12 @@
 
 公开样本包含六个类别共 `2,400` 条人工审核候选。AUTO 要求精度的 `95%` Wilson 置信下限达到 `95%`，REVIEW 则保留 `90%` 的审核正样本；六个类别均得到统计证据支持的策略。AUTO 阈值从拖拉机的 `0.732` 到吸烟的 `0.859` 差异明显，直观证明全类别共用一个置信度阈值并不安全。
 
+### 跨 Teacher 一致性门控
+
+![预生成跨 Teacher 一致性报告](docs/assets/consensus-preview.png)
+
+公开样本包含六类共 `96` 个主 Teacher 候选。在 `72` 个主 AUTO 中，`48` 个得到独立验证 Teacher 的一对一空间支持并保留为 AUTO，另外 `24` 个安全降级到 REVIEW。该阶段不依赖模型推理，不会增加显存压力。
+
 ## 为什么需要这个项目
 
 多类别数据集经常包含 `person + helmet + smoking`、`person + slipper` 等联合场景。如果原始标注工作每次只关注一个目标，图中其他类别的有效目标就可能漏标。使用不完整标签训练多类别模型时，这些目标会被当作背景，从而向模型传递错误监督信号。
@@ -58,8 +64,11 @@ flowchart TD
     E -->|"疑似漏标"| G["按置信度分流"]
     G --> H["IGNORE"]
     G --> I["REVIEW + 审计 CSV"]
-    G --> J["AUTO + 派生标签目录"]
-    J --> K["可训练 YOLO 数据集"]
+    G --> J["AUTO 候选"]
+    J --> M{"可选验证 Teacher 一致性"}
+    M -->|"获得支持"| K["派生标签目录"]
+    M -->|"未获支持"| I
+    K --> N["可训练 YOLO 数据集"]
     I --> L["HTML 报告与分类抽样图"]
     J --> L
 ```
@@ -76,6 +85,7 @@ flowchart TD
 - 复核图按原图聚合，同一张图中的多个候选目标会一起展示。
 - GPU 推理前先进行无模型审计，检查错误标签、损坏图片和 train/val/test 精确重复。
 - 使用人工审核候选校准分类别策略：AUTO 采用 Wilson 精度置信下限，REVIEW 采用正样本召回约束。
+- 使用独立 Teacher 候选流进行一对一空间一致性门控，无需同时加载两个模型。
 - 每次扫描生成 manifest，记录参数、图片清单、依赖版本、CUDA 和 GPU 信息。
 
 ## 一分钟公开演示
@@ -119,6 +129,16 @@ yolo-label-recovery calibrate reviewed_candidates.csv `
   --auto-confidence-level 0.95 `
   --target-review-recall 0.90 `
   --min-auto-samples 20 `
+  --redact-paths
+```
+
+无需 GPU，即可使用独立验证 Teacher 对主 AUTO 候选进行门控：
+
+```powershell
+yolo-label-recovery consensus primary_candidates.csv verifier_candidates.csv `
+  --output-dir consensus `
+  --agreement-iou 0.50 `
+  --verifier-min-confidence 0.50 `
   --redact-paths
 ```
 
@@ -236,6 +256,8 @@ out-root/
 - [数据治理](docs/DATA_GOVERNANCE.md)
 - [阈值校准（中文）](docs/CALIBRATION.zh-CN.md)
 - [阈值校准（英文）](docs/CALIBRATION.md)
+- [跨 Teacher 一致性门控（中文）](docs/CONSENSUS.zh-CN.md)
+- [跨 Teacher 一致性门控（英文）](docs/CONSENSUS.md)
 - [面试项目讲解](docs/INTERVIEW_STORY.md)
 - [作品集与面试指南（中文）](docs/PORTFOLIO_GUIDE.zh-CN.md)
 - [作品集与面试指南（英文）](docs/PORTFOLIO_GUIDE.md)

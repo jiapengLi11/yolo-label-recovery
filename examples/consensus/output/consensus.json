@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-15T13:20:04.720668+00:00",
+  "primary_source": "<redacted>/primary_candidates.csv",
+  "verifier_source": "<redacted>/verifier_candidates.csv",
+  "policy": {
+    "agreement_iou": 0.5,
+    "verifier_min_confidence": 0.5,
+    "unmatched_auto_action": "downgrade_to_review",
+    "one_to_one_matching": true
+  },
+  "classes": {
+    "helmet": {
+      "primary_candidates": 16,
+      "primary_auto": 12,
+      "agreed_auto": 8,
+      "downgraded_to_review": 4,
+      "primary_review": 4
+    },
+    "person": {
+      "primary_candidates": 16,
+      "primary_auto": 12,
+      "agreed_auto": 8,
+      "downgraded_to_review": 4,
+      "primary_review": 4
+    },
+    "slipper": {
+      "primary_candidates": 16,
+      "primary_auto": 12,
+      "agreed_auto": 8,
+      "downgraded_to_review": 4,
+      "primary_review": 4
+    },
+    "smoking": {
+      "primary_candidates": 16,
+      "primary_auto": 12,
+      "agreed_auto": 8,
+      "downgraded_to_review": 4,
+      "primary_review": 4
+    },
+    "tractor": {
+      "primary_candidates": 16,
+      "primary_auto": 12,
+      "agreed_auto": 8,
+      "downgraded_to_review": 4,
+      "primary_review": 4
+    },
+    "vest": {
+      "primary_candidates": 16,
+      "primary_auto": 12,
+      "agreed_auto": 8,
+      "downgraded_to_review": 4,
+      "primary_review": 4
+    }
+  },
+  "totals": {
+    "primary_candidates": 96,
+    "primary_auto": 72,
+    "agreed_auto": 48,
+    "downgraded_to_review": 24,
+    "primary_review": 24
+  }
+}

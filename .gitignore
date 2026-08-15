@@ -44,3 +44,5 @@ Desktop.ini
 !examples/demo_output/*.csv
 !examples/calibration/*.csv
 !examples/calibration/output/*.csv
+!examples/consensus/*.csv
+!examples/consensus/output/*.csv

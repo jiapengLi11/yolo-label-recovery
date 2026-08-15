@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -22,3 +23,11 @@ def test_load_pipeline_returns_imported_module(monkeypatch):
     monkeypatch.setattr(cli.importlib, "import_module", lambda _name: pipeline)
 
     assert cli._load_pipeline() is pipeline
+
+
+def test_top_level_help_lists_consensus(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["yolo-label-recovery", "--help"])
+
+    cli.main()
+
+    assert "consensus PRIMARY_CSV VERIFIER_CSV" in capsys.readouterr().out

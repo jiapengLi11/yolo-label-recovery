@@ -21,6 +21,7 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 | MLOps | `doctor` and `manifest.json` | Reproducing CUDA, package and configuration state |
 | Human-in-the-loop ML | AUTO/REVIEW/IGNORE routing | Precision-first thresholds and audit evidence |
 | Evaluation and policy | `calibrate` command | Turning reviewed outcomes into precision/recall-constrained class policies |
+| Ensemble policy | `consensus` command | Independent evidence, one-to-one matching and coverage/risk tradeoffs |
 | Software quality | package, CLI, tests and CI | Public fixture, privacy checks and release build |
 | Communication | HTML reports and architecture docs | Turning model work into reviewable project evidence |
 
@@ -31,7 +32,8 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 3. Open `.demo-audit/dataset_audit.html` and point out the intentionally injected class error, orphan label and cross-split duplicate.
 4. Open `examples/demo_output/report.html` to show the recovery quality report without exposing project data.
 5. Open `examples/calibration/output/calibration.html` to explain why each class receives a different threshold.
-6. Run `yolo-label-recovery doctor` to show environment diagnostics.
+6. Open `examples/consensus/output/consensus.html` to show unsupported AUTO candidates being downgraded.
+7. Run `yolo-label-recovery doctor` to show environment diagnostics.
 
 This demonstration works without a GPU or private model weights. A full teacher scan remains an optional second demonstration when suitable public weights and data are available.
 
@@ -56,6 +58,10 @@ The `calibrate` command sorts reviewed candidates once and builds cumulative pre
 **What makes resume safe?**
 
 The state advances only after the current batch's labels and CSV rows are flushed. If a crash occurs between output and state commit, replay checks stable candidate keys and exact label lines, preventing duplication.
+
+**Why not load both Teachers together and ensemble their tensors?**
+
+Separate scans preserve the one-model GPU memory bound and allow different detector implementations to participate through a stable CSV contract. The consensus stage uses one-to-one IoU matching, keeps evidence auditable and downgrades unsupported AUTO candidates instead of deleting them.
 
 **Does high confidence make a prediction ground truth?**
 

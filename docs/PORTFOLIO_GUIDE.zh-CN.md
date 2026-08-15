@@ -21,6 +21,7 @@
 | MLOps | `doctor` 与 `manifest.json` | 如何复现 CUDA、依赖版本和运行参数 |
 | 人机协同 ML | AUTO/REVIEW/IGNORE | 分类别阈值与精度优先的审核策略 |
 | 评估与策略 | `calibrate` 命令 | 将人工审核结果转换为精度/召回约束的分类别策略 |
+| 集成决策 | `consensus` 命令 | 独立证据、一对一匹配与覆盖率/风险取舍 |
 | 软件质量 | Python 包、CLI、测试和 CI | 公开测试夹具、隐私扫描与 Release 构建 |
 | 技术沟通 | HTML 报告与架构文档 | 将模型工作转化为可审核、可展示的证据 |
 
@@ -31,7 +32,8 @@
 3. 打开 `.demo-audit/dataset_audit.html`，展示主动注入的类别错误、孤立标签和跨划分重复图片。
 4. 打开 `examples/demo_output/report.html`，在不泄露项目数据的情况下展示补标质量报告。
 5. 打开 `examples/calibration/output/calibration.html`，解释为什么每个类别需要不同阈值。
-6. 运行 `yolo-label-recovery doctor`，展示环境诊断能力。
+6. 打开 `examples/consensus/output/consensus.html`，展示不受支持的 AUTO 如何降级。
+7. 运行 `yolo-label-recovery doctor`，展示环境诊断能力。
 
 该演示不需要 GPU 或私有权重。具备合适的公开模型与数据后，可将完整 Teacher 扫描作为第二阶段演示。
 
@@ -56,6 +58,10 @@ Teacher 的置信度校准和目标难度不同。吸烟、拖鞋等小目标不
 **断点续跑为什么安全？**
 
 只有当前批次标签与 CSV 全部落盘后，状态游标才前移。如果输出完成但状态尚未提交时发生崩溃，重放过程会检查稳定候选键和精确标签行，避免重复写入。
+
+**为什么不同时加载两个 Teacher，直接集成预测张量？**
+
+分开扫描可以保留单模型显存上限，并通过稳定 CSV 约定接入不同检测器。共识阶段采用一对一 IoU 匹配，保留可审核证据，并把未获支持的 AUTO 降级而不是删除。
 
 **高置信度预测就是正确标签吗？**
 

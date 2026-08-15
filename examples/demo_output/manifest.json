@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "tool": "yolo-label-recovery",
-  "tool_version": "0.5.0",
+  "tool_version": "0.6.0",
   "status": "complete",
   "fixture": "synthetic public demo",
   "environment": {

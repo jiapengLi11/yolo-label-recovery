@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cross-Teacher Consensus Report</title><style>
+:root{--ink:#102a43;--navy:#0d2e48;--teal:#13a6a1;--orange:#ef9f32;--paper:#f4f8fb;--line:#d7e3ec;--muted:#627d98}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#e8f2f7,#fff 48%,#edf8f3);color:var(--ink);font:15px/1.55 "Segoe UI",sans-serif}
+main{max-width:1180px;margin:auto;padding:42px 24px 72px}header{padding:38px;border-radius:24px;background:var(--navy);color:white;box-shadow:0 20px 60px #102a4320}
+.eyebrow{color:#7fddda;letter-spacing:.14em;text-transform:uppercase;font-weight:700}h1{font-size:42px;line-height:1.08;margin:10px 0}header p{max-width:820px;color:#d6e8f2}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0}.card,.panel{background:white;border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px #102a4310}
+.card{padding:20px}.value{font-size:30px;font-weight:750}.label,.muted{color:var(--muted)}.panel{padding:24px;margin-top:20px;overflow:auto}h2{margin:0 0 16px}
+table{width:100%;border-collapse:collapse}th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-size:12px;text-transform:uppercase}
+.bar-row{display:grid;grid-template-columns:110px 1fr 70px;gap:14px;align-items:center;margin:13px 0}.track{height:13px;background:#e7eef3;border-radius:10px;overflow:hidden}.track i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),#67c7a5);border-radius:10px}
+.notice{padding:14px 16px;border-left:4px solid var(--orange);background:#fff8e8;border-radius:8px}@media(max-width:700px){.cards{grid-template-columns:1fr 1fr}}@media(max-width:480px){.cards{grid-template-columns:1fr}h1{font-size:32px}}
+</style></head><body><main><header><div class="eyebrow">Independent model verification</div><h1>Cross-Teacher Consensus</h1>
+<p>Primary AUTO candidates require spatial agreement from an independent verifier. Unsupported AUTO candidates are downgraded to REVIEW rather than silently discarded.</p>
+<div class="muted">Primary: &lt;redacted&gt;/primary_candidates.csv<br>Verifier: &lt;redacted&gt;/verifier_candidates.csv</div></header>
+<section class="cards"><div class="card"><div class="value">72</div><div class="label">Primary AUTO</div></div>
+<div class="card"><div class="value">48</div><div class="label">Consensus AUTO</div></div>
+<div class="card"><div class="value">24</div><div class="label">Downgraded to REVIEW</div></div>
+<div class="card"><div class="value">66.7%</div><div class="label">Agreement rate</div></div></section>
+<section class="panel"><h2>Class-level decisions</h2><table><thead><tr><th>Class</th><th>Primary candidates</th><th>Primary AUTO</th><th>Agreed AUTO</th><th>Downgraded</th><th>Original REVIEW</th><th>Agreement</th></tr></thead><tbody><tr><td><strong>helmet</strong></td><td>16</td><td>12</td><td>8</td><td>4</td><td>4</td><td>66.7%</td></tr><tr><td><strong>person</strong></td><td>16</td><td>12</td><td>8</td><td>4</td><td>4</td><td>66.7%</td></tr><tr><td><strong>slipper</strong></td><td>16</td><td>12</td><td>8</td><td>4</td><td>4</td><td>66.7%</td></tr><tr><td><strong>smoking</strong></td><td>16</td><td>12</td><td>8</td><td>4</td><td>4</td><td>66.7%</td></tr><tr><td><strong>tractor</strong></td><td>16</td><td>12</td><td>8</td><td>4</td><td>4</td><td>66.7%</td></tr><tr><td><strong>vest</strong></td><td>16</td><td>12</td><td>8</td><td>4</td><td>4</td><td>66.7%</td></tr></tbody></table></section>
+<section class="panel"><h2>AUTO agreement by class</h2><div class='bar-row'><span>helmet</span><div class='track'><i style='width:66.7%'></i></div><b>66.7%</b></div><div class='bar-row'><span>person</span><div class='track'><i style='width:66.7%'></i></div><b>66.7%</b></div><div class='bar-row'><span>slipper</span><div class='track'><i style='width:66.7%'></i></div><b>66.7%</b></div><div class='bar-row'><span>smoking</span><div class='track'><i style='width:66.7%'></i></div><b>66.7%</b></div><div class='bar-row'><span>tractor</span><div class='track'><i style='width:66.7%'></i></div><b>66.7%</b></div><div class='bar-row'><span>vest</span><div class='track'><i style='width:66.7%'></i></div><b>66.7%</b></div></section>
+<section class="panel"><div class="notice"><strong>Guardrail:</strong> agreement is additional evidence, not ground truth. Use independent model families or training seeds and audit consensus errors on the target domain.</div></section>
+</main></body></html>
