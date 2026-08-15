@@ -44,3 +44,21 @@ Dry-run and apply share the same candidate generation logic. Apply adds two side
 The checkpoint cursor advances only after CSV rows and labels are committed. Writes are idempotent: candidate identity prevents duplicate CSV records and normalized label lines are checked before appending. If a process stops between a data write and checkpoint update, `--resume` safely retries the same batch.
 
 The state signature covers dataset metadata, teacher files, classes, splits, thresholds and matching parameters. A resume attempt with different inputs is rejected instead of silently mixing experiments.
+
+## Audited policy feedback loop
+
+Threshold calibration turns the recovery pipeline into an iterative data-quality system rather than a one-off inference script.
+
+```mermaid
+flowchart LR
+    A["Teacher scan"] --> B["AUTO / REVIEW candidates"]
+    B --> C["Stratified human audit"]
+    C --> D["Per-class precision-recall curves"]
+    D --> E["Precision-constrained AUTO policy"]
+    D --> F["Recall-constrained REVIEW policy"]
+    E --> G["Versioned threshold overrides"]
+    F --> G
+    G --> A
+```
+
+The calibration sample is evidence for the routing policy, not a replacement for an independent model test set. A policy should be recalibrated when the Teacher model, target camera domain, operating conditions or annotation rules change.

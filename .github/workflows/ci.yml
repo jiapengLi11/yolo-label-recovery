@@ -30,6 +30,11 @@ jobs:
           python examples/create_synthetic_dataset.py --output /tmp/ylr-demo
           yolo-label-recovery audit /tmp/ylr-demo --output-dir /tmp/ylr-audit --hash-images --check-images
           python -c "import json; d=json.load(open('/tmp/ylr-audit/dataset_audit.json')); assert d['critical_issues']==2 and d['cross_split_duplicate_groups']==1"
+      - name: Run threshold calibration demo
+        run: |
+          python examples/create_calibration_fixture.py --output /tmp/ylr-reviewed.csv
+          yolo-label-recovery calibrate /tmp/ylr-reviewed.csv --output-dir /tmp/ylr-calibration --target-auto-precision 0.95 --target-review-recall 0.90 --min-auto-samples 20 --redact-paths
+          python -c "import json; d=json.load(open('/tmp/ylr-calibration/calibration.json')); assert len(d['classes'])==6 and all(v['status']=='calibrated' for v in d['classes'].values())"
       - name: Build wheel
         run: python -m pip wheel --no-deps --wheel-dir dist .
       - name: Reject private artifacts

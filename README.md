@@ -35,6 +35,12 @@ The fixture intentionally contains one invalid class ID, one orphan label and on
 | Simulated OOM retries | 3 |
 | Source labels modified | No |
 
+### Audited threshold calibration
+
+![Pre-generated threshold calibration report](docs/assets/calibration-preview.png)
+
+The public fixture contains `600` reviewed candidates across all six classes. With a `95%` empirical AUTO precision target and `90%` captured-positive recall target, all six classes produce supported policies. The resulting AUTO thresholds differ substantially, from `0.662` for tractor to `0.837` for smoking, demonstrating why one global confidence threshold is unsafe.
+
 ## Why this project exists
 
 Multi-class datasets often contain combined scenes such as `person + helmet + smoking` or `person + slipper`. If the original annotation process focused on one target at a time, valid objects from other classes can be missing. Training a new multi-class model on incomplete labels can make the model learn the wrong supervision signal.
@@ -69,6 +75,7 @@ flowchart TD
 - `--materialize-dataset` creates a standard YOLO dataset using hardlinks when possible.
 - Review images are grouped by unique image so multiple candidates from one image remain visible together.
 - A model-free audit catches malformed labels, corrupt images and exact train/val/test leakage before GPU work starts.
+- Audited candidate decisions can calibrate class-specific AUTO precision and REVIEW recall policies.
 - Every scan records a local manifest with parameters, image inventory, package versions, CUDA and GPU metadata.
 
 ## One-minute public demo
@@ -101,6 +108,17 @@ python -m venv .venv
 python -m pip install -e .
 
 yolo-label-recovery audit D:\data\mining-safety --output-dir D:\data\audit-001 --hash-images --check-images
+```
+
+Calibrate thresholds from a human-reviewed candidate CSV without any GPU dependency:
+
+```powershell
+yolo-label-recovery calibrate reviewed_candidates.csv `
+  --output-dir calibration `
+  --target-auto-precision 0.95 `
+  --target-review-recall 0.90 `
+  --min-auto-samples 20 `
+  --redact-paths
 ```
 
 For GPU-assisted label recovery, first install the CUDA-compatible PyTorch build required by the target GPU, then install the inference extra:
@@ -215,6 +233,8 @@ See:
 - [Architecture and workflow](docs/ARCHITECTURE.md)
 - [Memory and GPU design](docs/MEMORY_AND_GPU.md)
 - [Data governance](docs/DATA_GOVERNANCE.md)
+- [Threshold calibration](docs/CALIBRATION.md)
+- [Threshold calibration (Simplified Chinese)](docs/CALIBRATION.zh-CN.md)
 - [Interview presentation](docs/INTERVIEW_STORY.md)
 - [Portfolio and interview guide](docs/PORTFOLIO_GUIDE.md)
 - [Portfolio and interview guide (Simplified Chinese)](docs/PORTFOLIO_GUIDE.zh-CN.md)

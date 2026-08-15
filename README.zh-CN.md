@@ -35,6 +35,12 @@
 | 模拟 OOM 重试次数 | 3 |
 | 是否修改源标签 | 否 |
 
+### 审核驱动的阈值校准
+
+![预生成阈值校准报告](docs/assets/calibration-preview.png)
+
+公开样本包含六个类别共 `600` 条人工审核候选。在经验 AUTO 精度目标 `95%`、正样本覆盖召回目标 `90%` 的条件下，六个类别均得到有样本支持的策略。AUTO 阈值从拖拉机的 `0.662` 到吸烟的 `0.837` 差异明显，直观证明全类别共用一个置信度阈值并不安全。
+
 ## 为什么需要这个项目
 
 多类别数据集经常包含 `person + helmet + smoking`、`person + slipper` 等联合场景。如果原始标注工作每次只关注一个目标，图中其他类别的有效目标就可能漏标。使用不完整标签训练多类别模型时，这些目标会被当作背景，从而向模型传递错误监督信号。
@@ -69,6 +75,7 @@ flowchart TD
 - `--materialize-dataset` 可生成标准 YOLO 数据集，并在条件允许时使用硬链接。
 - 复核图按原图聚合，同一张图中的多个候选目标会一起展示。
 - GPU 推理前先进行无模型审计，检查错误标签、损坏图片和 train/val/test 精确重复。
+- 使用人工审核候选校准分类别 AUTO 精度和 REVIEW 召回策略。
 - 每次扫描生成 manifest，记录参数、图片清单、依赖版本、CUDA 和 GPU 信息。
 
 ## 一分钟公开演示
@@ -101,6 +108,17 @@ python -m venv .venv
 python -m pip install -e .
 
 yolo-label-recovery audit D:\data\mining-safety --output-dir D:\data\audit-001 --hash-images --check-images
+```
+
+无需 GPU，即可根据人工审核候选 CSV 校准阈值：
+
+```powershell
+yolo-label-recovery calibrate reviewed_candidates.csv `
+  --output-dir calibration `
+  --target-auto-precision 0.95 `
+  --target-review-recall 0.90 `
+  --min-auto-samples 20 `
+  --redact-paths
 ```
 
 如需使用 GPU 自动补标，请先安装与目标 GPU/CUDA 兼容的 PyTorch，再安装推理依赖：
@@ -215,6 +233,8 @@ out-root/
 - [架构与工作流](docs/ARCHITECTURE.md)
 - [内存与显存设计](docs/MEMORY_AND_GPU.md)
 - [数据治理](docs/DATA_GOVERNANCE.md)
+- [阈值校准（中文）](docs/CALIBRATION.zh-CN.md)
+- [阈值校准（英文）](docs/CALIBRATION.md)
 - [面试项目讲解](docs/INTERVIEW_STORY.md)
 - [作品集与面试指南（中文）](docs/PORTFOLIO_GUIDE.zh-CN.md)
 - [作品集与面试指南（英文）](docs/PORTFOLIO_GUIDE.md)

@@ -1,8 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
 - Added pre-generated, path-redacted audit and recovery screenshots to both README languages for offline presentation.
+- Added the `calibrate` command for class-specific AUTO precision and REVIEW recall policies.
+- Added machine-readable threshold recommendations, threshold-curve CSV and a self-contained HTML calibration report.
+- Added a deterministic six-class, 600-candidate public calibration fixture and screenshot.
+- Added calibration algorithm, validation and artifact tests.
 
 ## 0.3.1
 

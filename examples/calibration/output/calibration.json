@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-15T12:44:55.780795+00:00",
+  "source": "<redacted>/reviewed_candidates.csv",
+  "policy": {
+    "target_auto_precision": 0.95,
+    "target_review_recall": 0.9,
+    "min_auto_samples": 20
+  },
+  "classes": {
+    "helmet": {
+      "status": "calibrated",
+      "samples": 100,
+      "accepted": 64,
+      "rejected": 36,
+      "acceptance_rate": 0.64,
+      "auto_threshold": 0.7182,
+      "auto_precision": 0.95,
+      "auto_recall": 0.59375,
+      "auto_samples": 40,
+      "review_threshold": 0.5439,
+      "captured_positive_recall": 0.90625,
+      "review_queue_samples": 25,
+      "review_queue_acceptance_rate": 0.8
+    },
+    "person": {
+      "status": "calibrated",
+      "samples": 100,
+      "accepted": 67,
+      "rejected": 33,
+      "acceptance_rate": 0.67,
+      "auto_threshold": 0.6903,
+      "auto_precision": 0.9545454545454546,
+      "auto_recall": 0.6268656716417911,
+      "auto_samples": 44,
+      "review_threshold": 0.523,
+      "captured_positive_recall": 0.9104477611940298,
+      "review_queue_samples": 24,
+      "review_queue_acceptance_rate": 0.7916666666666666
+    },
+    "slipper": {
+      "status": "calibrated",
+      "samples": 100,
+      "accepted": 58,
+      "rejected": 42,
+      "acceptance_rate": 0.58,
+      "auto_threshold": 0.8227,
+      "auto_precision": 0.96,
+      "auto_recall": 0.41379310344827586,
+      "auto_samples": 25,
+      "review_threshold": 0.5161,
+      "captured_positive_recall": 0.9137931034482759,
+      "review_queue_samples": 44,
+      "review_queue_acceptance_rate": 0.6590909090909091
+    },
+    "smoking": {
+      "status": "calibrated",
+      "samples": 100,
+      "accepted": 61,
+      "rejected": 39,
+      "acceptance_rate": 0.61,
+      "auto_threshold": 0.8367,
+      "auto_precision": 0.9565217391304348,
+      "auto_recall": 0.36065573770491804,
+      "auto_samples": 23,
+      "review_threshold": 0.4882,
+      "captured_positive_recall": 0.9016393442622951,
+      "review_queue_samples": 50,
+      "review_queue_acceptance_rate": 0.66
+    },
+    "tractor": {
+      "status": "calibrated",
+      "samples": 100,
+      "accepted": 70,
+      "rejected": 30,
+      "acceptance_rate": 0.7,
+      "auto_threshold": 0.6624,
+      "auto_precision": 0.9583333333333334,
+      "auto_recall": 0.6571428571428571,
+      "auto_samples": 48,
+      "review_threshold": 0.5161,
+      "captured_positive_recall": 0.9,
+      "review_queue_samples": 21,
+      "review_queue_acceptance_rate": 0.8095238095238095
+    },
+    "vest": {
+      "status": "calibrated",
+      "samples": 100,
+      "accepted": 58,
+      "rejected": 42,
+      "acceptance_rate": 0.58,
+      "auto_threshold": 0.7948,
+      "auto_precision": 0.9655172413793104,
+      "auto_recall": 0.4827586206896552,
+      "auto_samples": 29,
+      "review_threshold": 0.5579,
+      "captured_positive_recall": 0.9137931034482759,
+      "review_queue_samples": 34,
+      "review_queue_acceptance_rate": 0.7352941176470589
+    }
+  },
+  "threshold_overrides": {
+    "helmet": "helmet:0.718:0.544",
+    "person": "person:0.690:0.523",
+    "slipper": "slipper:0.823:0.516",
+    "smoking": "smoking:0.837:0.488",
+    "tractor": "tractor:0.662:0.516",
+    "vest": "vest:0.795:0.558"
+  }
+}

@@ -20,6 +20,7 @@
 | 可靠性 | `state.json` 与幂等写入 | 批次提交边界与崩溃重放语义 |
 | MLOps | `doctor` 与 `manifest.json` | 如何复现 CUDA、依赖版本和运行参数 |
 | 人机协同 ML | AUTO/REVIEW/IGNORE | 分类别阈值与精度优先的审核策略 |
+| 评估与策略 | `calibrate` 命令 | 将人工审核结果转换为精度/召回约束的分类别策略 |
 | 软件质量 | Python 包、CLI、测试和 CI | 公开测试夹具、隐私扫描与 Release 构建 |
 | 技术沟通 | HTML 报告与架构文档 | 将模型工作转化为可审核、可展示的证据 |
 
@@ -29,7 +30,8 @@
 2. 运行 `yolo-label-recovery audit .demo-dataset --output-dir .demo-audit --hash-images --check-images`。
 3. 打开 `.demo-audit/dataset_audit.html`，展示主动注入的类别错误、孤立标签和跨划分重复图片。
 4. 打开 `examples/demo_output/report.html`，在不泄露项目数据的情况下展示补标质量报告。
-5. 运行 `yolo-label-recovery doctor`，展示环境诊断能力。
+5. 打开 `examples/calibration/output/calibration.html`，解释为什么每个类别需要不同阈值。
+6. 运行 `yolo-label-recovery doctor`，展示环境诊断能力。
 
 该演示不需要 GPU 或私有权重。具备合适的公开模型与数据后，可将完整 Teacher 扫描作为第二阶段演示。
 
@@ -46,6 +48,10 @@
 **为什么每个类别使用不同 AUTO 阈值？**
 
 Teacher 的置信度校准和目标难度不同。吸烟、拖鞋等小目标不能直接沿用大型机械类别的阈值。阈值是一项需要验证数据支持的策略，而不是通用常量。
+
+**阈值不是拍脑袋决定的吗？**
+
+`calibrate` 命令对人工审核候选排序一次，再生成累计精度召回曲线。AUTO 选择满足经验精度目标和最小样本数的最低阈值；REVIEW 选择保留目标正样本召回率的最高阈值，从而减少人工工作量。样本无法支持目标时，工具不会提供回退阈值。
 
 **断点续跑为什么安全？**
 

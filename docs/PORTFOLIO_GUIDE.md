@@ -20,6 +20,7 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 | Reliability | `state.json` and idempotent writes | Batch commit boundary and crash replay semantics |
 | MLOps | `doctor` and `manifest.json` | Reproducing CUDA, package and configuration state |
 | Human-in-the-loop ML | AUTO/REVIEW/IGNORE routing | Precision-first thresholds and audit evidence |
+| Evaluation and policy | `calibrate` command | Turning reviewed outcomes into precision/recall-constrained class policies |
 | Software quality | package, CLI, tests and CI | Public fixture, privacy checks and release build |
 | Communication | HTML reports and architecture docs | Turning model work into reviewable project evidence |
 
@@ -29,7 +30,8 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 2. Run `yolo-label-recovery audit .demo-dataset --output-dir .demo-audit --hash-images --check-images`.
 3. Open `.demo-audit/dataset_audit.html` and point out the intentionally injected class error, orphan label and cross-split duplicate.
 4. Open `examples/demo_output/report.html` to show the recovery quality report without exposing project data.
-5. Run `yolo-label-recovery doctor` to show environment diagnostics.
+5. Open `examples/calibration/output/calibration.html` to explain why each class receives a different threshold.
+6. Run `yolo-label-recovery doctor` to show environment diagnostics.
 
 This demonstration works without a GPU or private model weights. A full teacher scan remains an optional second demonstration when suitable public weights and data are available.
 
@@ -46,6 +48,10 @@ The compute remains approximately `K x N`, but loading one model at a time bound
 **Why are AUTO thresholds different by class?**
 
 Teacher calibration and object difficulty differ. Small smoking/slipper targets should not inherit a threshold justified by a large tractor detector. Thresholds are policy and need validation data.
+
+**How did you choose the thresholds instead of guessing them?**
+
+The `calibrate` command sorts reviewed candidates once and builds cumulative precision-recall curves. AUTO uses the lowest threshold meeting an empirical precision target and minimum sample count. REVIEW uses the highest threshold retaining the target positive recall, which minimizes review workload. Unsupported targets produce no fallback threshold.
 
 **What makes resume safe?**
 
