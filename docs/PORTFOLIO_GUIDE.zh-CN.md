@@ -24,6 +24,7 @@
 | 集成决策 | `consensus` 命令 | 独立证据、一对一匹配与覆盖率/风险取舍 |
 | 可扩展相似度搜索 | `cluster` 命令 | 感知哈希、BK-tree 半径查询与保守碰撞防护 |
 | 主动学习 | `prioritize` 命令 | 不确定性、动态类别平衡、视觉多样性与偏置抽样边界 |
+| 人工审核闭环 | `review-build/review-ui/review-apply` | GT/AUTO 全情况、同目标替换、评测集隔离与安全写回 |
 | 软件质量 | Python 包、CLI、测试和 CI | 公开测试夹具、隐私扫描与 Release 构建 |
 | 技术沟通 | HTML 报告与架构文档 | 将模型工作转化为可审核、可展示的证据 |
 
@@ -37,7 +38,9 @@
 6. 打开 `examples/consensus/output/consensus.html`，展示不受支持的 AUTO 如何降级。
 7. 打开 `examples/near_duplicates/output/near_duplicate_report.html`，展示审核压缩与跨划分泄漏。
 8. 打开 `examples/prioritization/output/prioritization_report.html`，展示有限预算六类审核队列。
-9. 运行 `yolo-label-recovery doctor`，展示环境诊断能力。
+9. 生成公开审核样例并打开 `.demo-review-result/review_summary.html`，展示模型证据到人工授权的边界。
+10. 打开 `.demo-review-result/START_REVIEW.bat`，展示离线审核、自动保存与续审。
+11. 运行 `yolo-label-recovery doctor`，展示环境诊断能力。
 
 该演示不需要 GPU 或私有权重。具备合适的公开模型与数据后，可将完整 Teacher 扫描作为第二阶段演示。
 
@@ -70,6 +73,10 @@ Teacher 的置信度校准和目标难度不同。吸烟、拖鞋等小目标不
 **高置信度预测就是正确标签吗？**
 
 不是。高置信度只代表更强的证据。域偏移条件下，置信度不能直接证明标签正确，因此项目保留 REVIEW 分流、可视化抽样和完整审计链路。
+
+**同类别 GT 与 AUTO 都指向一个目标时，为什么不能都留下？**
+
+两个尺度不同的同类框同时存在会制造重复目标和不一致监督。审核门控联合 IoU、IoS 和中心距离识别同目标存疑情况，只允许人工选择“用 AUTO 替换高亮 GT”或拒绝。写回前还会确认原 GT 未被其他人修改，避免审核依据漂移。
 
 **为什么近重复检测不直接两两比较全部图片？**
 

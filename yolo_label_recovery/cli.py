@@ -17,6 +17,9 @@ Commands:
   yolo-label-recovery consensus PRIMARY_CSV VERIFIER_CSV --output-dir OUTPUT_DIR
   yolo-label-recovery cluster DATASET_ROOT --output-dir OUTPUT_DIR
   yolo-label-recovery prioritize CANDIDATES_CSV DATASET_ROOT --output-dir OUTPUT_DIR
+  yolo-label-recovery review-build DATASET_ROOT CANDIDATES_CSV --policy POLICY --output-dir OUTPUT_DIR
+  yolo-label-recovery review-ui REVIEW_ROOT
+  yolo-label-recovery review-apply DATASET_ROOT DECISIONS_CSV --policy POLICY --output-root OUTPUT_ROOT
   yolo-label-recovery doctor [--output environment.json]
 
 Examples:
@@ -27,6 +30,9 @@ Examples:
   yolo-label-recovery consensus primary.csv verifier.csv --output-dir consensus
   yolo-label-recovery cluster datasets/example --output-dir near-duplicates
   yolo-label-recovery prioritize candidates_review.csv datasets/example --output-dir priority
+  yolo-label-recovery review-build datasets/example candidates_all.csv --policy configs/review_policy.example.yaml --output-dir review
+  yolo-label-recovery review-ui review
+  yolo-label-recovery review-apply datasets/example review/company_decisions.csv --policy configs/review_policy.example.yaml --output-root datasets/reviewed
   yolo-label-recovery doctor
 """
 
@@ -94,6 +100,24 @@ def main() -> None:
         from .prioritization import main as prioritize_main
 
         prioritize_main(sys.argv[2:])
+        return
+
+    if command == "review-build":
+        from .review import main as review_main
+
+        review_main(sys.argv[2:])
+        return
+
+    if command == "review-ui":
+        from .review_gui import main as review_ui_main
+
+        review_ui_main(sys.argv[2:])
+        return
+
+    if command == "review-apply":
+        from .review_apply import main as review_apply_main
+
+        review_apply_main(sys.argv[2:])
         return
 
     if command == "doctor":
