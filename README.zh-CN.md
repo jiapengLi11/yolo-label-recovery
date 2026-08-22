@@ -65,6 +65,12 @@
 
 无 GPU 合成样例枚举 `GT0_AUTO0`、`GT1_AUTO0`、`GT0_AUTO1`、`GT1_AUTO1` 四种图片/类别状态，并联合 IoU、IoS、归一化中心距离和面积倍率，区分已标注目标、同目标框尺度不一致、不同漏标目标和跨类别冲突。高置信度仍然只是证据，不代表拥有写标签的权限。
 
+### 生产规模验证
+
+![脱敏生产规模验证汇总](docs/assets/production-validation-summary.svg)
+
+该人工门控还在一个包含 `29,071` 张图片的私有六分类数据集上完成全量验证。六个单类别 Teacher 共执行 `174,426` 次图片-模型推理，形成 `99,696` 条预测证据和 `30,183` 条审核项，可视化失败为 `0`，且源标签保持不变。详见[脱敏案例](docs/PRODUCTION_VALIDATION.zh-CN.md)。
+
 ## 为什么需要这个项目
 
 多类别数据集经常包含 `person + helmet + smoking`、`person + slipper` 等联合场景。如果原始标注工作每次只关注一个目标，图中其他类别的有效目标就可能漏标。使用不完整标签训练多类别模型时，这些目标会被当作背景，从而向模型传递错误监督信号。
@@ -326,6 +332,8 @@ out-root/
 - [主动审核优先级（英文）](docs/ACTIVE_REVIEW.md)
 - [GT/AUTO 全情况人工审核（中文）](docs/HUMAN_REVIEW.zh-CN.md)
 - [GT/AUTO 全情况人工审核（英文）](docs/HUMAN_REVIEW.md)
+- [生产规模验证（中文）](docs/PRODUCTION_VALIDATION.zh-CN.md)
+- [生产规模验证（英文）](docs/PRODUCTION_VALIDATION.md)
 - [面试项目讲解](docs/INTERVIEW_STORY.md)
 - [作品集与面试指南（中文）](docs/PORTFOLIO_GUIDE.zh-CN.md)
 - [作品集与面试指南（英文）](docs/PORTFOLIO_GUIDE.md)

@@ -8,6 +8,7 @@
 - Added `review-ui`, an offline autosaving Tk reviewer with explicit add, replace, evaluation, reject and uncertain actions.
 - Added `review-apply` with unresolved-decision blocking, source-GT drift detection, duplicate rechecks and immutable derived datasets.
 - Added a packaged default six-class policy, public no-GPU fixture, static preview, bilingual documentation, ADR and CI coverage.
+- Added an anonymized production-scale case study covering 174,426 image-model passes and 30,183 review decisions.
 
 ## 0.8.0
 

@@ -65,6 +65,12 @@ The public fixture contains `36` imbalanced REVIEW images. A budget of `12` cove
 
 The no-GPU fixture enumerates all four image/class states (`GT0_AUTO0`, `GT1_AUTO0`, `GT0_AUTO1`, `GT1_AUTO1`). It combines IoU, intersection-over-smaller-area, normalized center distance and area ratio to distinguish already-labelled objects, same-target extent disagreement, distinct missing objects and cross-class conflicts. High confidence remains evidence, not permission to write a label.
 
+### Production-scale validation
+
+![Anonymized production validation summary](docs/assets/production-validation-summary.svg)
+
+The review gate was also exercised on a private six-class dataset containing `29,071` images. Six specialist Teachers completed `174,426` image-model passes, produced `99,696` evidence rows and generated `30,183` review rows with `0` render failures while leaving the source labels unchanged. See the [anonymized case study](docs/PRODUCTION_VALIDATION.md).
+
 ## Why this project exists
 
 Multi-class datasets often contain combined scenes such as `person + helmet + smoking` or `person + slipper`. If the original annotation process focused on one target at a time, valid objects from other classes can be missing. Training a new multi-class model on incomplete labels can make the model learn the wrong supervision signal.
@@ -326,6 +332,8 @@ See:
 - [Active review prioritization (Simplified Chinese)](docs/ACTIVE_REVIEW.zh-CN.md)
 - [Exhaustive GT/AUTO human review](docs/HUMAN_REVIEW.md)
 - [Exhaustive GT/AUTO human review (Simplified Chinese)](docs/HUMAN_REVIEW.zh-CN.md)
+- [Production-scale validation](docs/PRODUCTION_VALIDATION.md)
+- [Production-scale validation (Simplified Chinese)](docs/PRODUCTION_VALIDATION.zh-CN.md)
 - [Interview presentation](docs/INTERVIEW_STORY.md)
 - [Portfolio and interview guide](docs/PORTFOLIO_GUIDE.md)
 - [Portfolio and interview guide (Simplified Chinese)](docs/PORTFOLIO_GUIDE.zh-CN.md)

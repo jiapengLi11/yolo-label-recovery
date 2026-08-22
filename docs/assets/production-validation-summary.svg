@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Anonymized production validation summary</title>
+  <desc id="desc">Six specialist teachers scanned 29071 images, producing 99696 evidence rows and 30183 review rows with zero render failures.</desc>
+  <rect width="1200" height="700" rx="28" fill="#0b1720"/>
+  <path d="M0 555 C250 490 420 640 680 555 C900 485 1030 545 1200 500 L1200 700 L0 700 Z" fill="#102b34"/>
+  <text x="64" y="70" fill="#f7f1df" font-family="Georgia, serif" font-size="36" font-weight="700">Production-scale review gate</text>
+  <text x="64" y="105" fill="#91a9ad" font-family="Verdana, sans-serif" font-size="16">Anonymized six-class validation snapshot · source dataset remained immutable</text>
+  <g font-family="Verdana, sans-serif">
+    <g fill="#142832" stroke="#28505c"><rect x="64" y="140" width="245" height="118" rx="16"/><rect x="326" y="140" width="245" height="118" rx="16"/><rect x="588" y="140" width="245" height="118" rx="16"/></g>
+    <rect x="850" y="140" width="286" height="118" rx="16" fill="#173b3b" stroke="#4fb3a1"/>
+    <g fill="#91a9ad" font-size="14"><text x="86" y="174">DATASET IMAGES</text><text x="348" y="174">IMAGE-MODEL PASSES</text><text x="610" y="174">EVIDENCE ROWS</text><text x="872" y="174" fill="#8bd5c7">REVIEW ROWS · RENDER FAILURES</text></g>
+    <g fill="#f7f1df" font-size="40" font-weight="700"><text x="86" y="222">29,071</text><text x="348" y="222">174,426</text><text x="610" y="222">99,696</text><text x="872" y="222" fill="#f0bf4c">30,183 · 0</text></g>
+    <text x="64" y="310" fill="#f7f1df" font-family="Georgia, serif" font-size="24" font-weight="700">Review workload by class</text>
+    <text x="820" y="310" fill="#f7f1df" font-family="Georgia, serif" font-size="24" font-weight="700">Decision routing</text>
+    <g font-size="14" fill="#d8e0dd">
+      <text x="64" y="352">person</text><rect x="142" y="337" width="500" height="18" rx="9" fill="#f0bf4c"/><text x="653" y="352" fill="#f7f1df">25,066 · 83.05%</text>
+      <text x="64" y="392">helmet</text><rect x="142" y="377" width="39" height="18" rx="9" fill="#4fb3a1"/><text x="192" y="392">1,823 · 6.04%</text>
+      <text x="64" y="432">smoking</text><rect x="142" y="417" width="27" height="18" rx="9" fill="#e96f51"/><text x="180" y="432">1,265 · 4.19%</text>
+      <text x="64" y="472">vest</text><rect x="142" y="457" width="22" height="18" rx="9" fill="#4fb3a1"/><text x="175" y="472">1,031 · 3.42%</text>
+      <text x="64" y="512">slipper</text><rect x="142" y="497" width="19" height="18" rx="9" fill="#4fb3a1"/><text x="172" y="512">886 · 2.94%</text>
+      <text x="64" y="552">tractor</text><rect x="142" y="537" width="5" height="18" rx="3" fill="#4fb3a1"/><text x="158" y="552">112 · 0.37%</text>
+    </g>
+    <g font-size="14" fill="#d8e0dd">
+      <rect x="820" y="338" width="16" height="16" rx="4" fill="#f0bf4c"/><text x="848" y="352">Train missing candidates</text><text x="1120" y="352" fill="#f7f1df" text-anchor="end">18,120</text>
+      <rect x="820" y="382" width="16" height="16" rx="4" fill="#4fb3a1"/><text x="848" y="396">Evaluation candidates held</text><text x="1120" y="396" fill="#f7f1df" text-anchor="end">7,951</text>
+      <rect x="820" y="426" width="16" height="16" rx="4" fill="#e96f51"/><text x="848" y="440">Same-target ambiguity</text><text x="1120" y="440" fill="#f7f1df" text-anchor="end">3,688</text>
+      <rect x="820" y="470" width="16" height="16" rx="4" fill="#c987d7"/><text x="848" y="484">Cross-class conflict</text><text x="1120" y="484" fill="#f7f1df" text-anchor="end">424</text>
+    </g>
+    <rect x="804" y="525" width="332" height="104" rx="16" fill="#142832" stroke="#28505c"/>
+    <text x="826" y="558" fill="#8bd5c7" font-size="14" font-weight="700">ENGINEERING FINDING</text>
+    <text x="826" y="587" fill="#f7f1df" font-size="15">High confidence is evidence strength,</text><text x="826" y="611" fill="#f7f1df" font-size="15">not permission to mutate ground truth.</text>
+    <text x="64" y="653" fill="#91a9ad" font-size="13">Published metrics are aggregate and path-redacted. No private image, label or model weight is included.</text>
+  </g>
+</svg>
