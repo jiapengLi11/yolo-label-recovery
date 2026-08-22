@@ -19,6 +19,8 @@ The tool addresses incomplete labels in multi-class YOLO datasets. A single mult
 10. Flush audit files and atomically advance `state.json` after the batch commit.
 11. Release results, model, label cache and CUDA cache before the next class.
 12. Generate `report.html` from the summary, CSV audit trail and bounded sample images.
+13. Optionally build an exhaustive GT/AUTO review bundle from the candidate evidence.
+14. Apply only explicit human decisions to a new dataset after duplicate and source-GT drift checks.
 
 Each recovery run also writes `manifest.json` at startup. It captures the immutable run signature, arguments, image/model inventory, package versions, CUDA details and GPU properties. A completed run adds result totals and per-class statistics. If the process crashes, the manifest remains in `running` state and `state.json` identifies the last committed batch.
 
@@ -62,6 +64,12 @@ flowchart LR
 ```
 
 The calibration sample is evidence for the routing policy, not a replacement for an independent model test set. A policy should be recalibrated when the Teacher model, target camera domain, operating conditions or annotation rules change.
+
+## Human authority boundary
+
+The 0.9 review workflow separates evidence generation from label-writing authority. `review-build` is read-only and classifies every candidate using same-class and cross-class geometry. `review-ui` records explicit human decisions. `review-apply` is the only stage allowed to create a reviewed dataset, and it never targets the source tree.
+
+Same-target ambiguity cannot be accepted as a second box: it requires an explicit replacement decision tied to the reviewed GT line and coordinates. If that GT changes between review and apply, the replacement is rejected. Val/test decisions remain held by default so dataset remediation cannot silently move the evaluation goalposts.
 
 ## Active review acquisition
 

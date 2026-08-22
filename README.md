@@ -59,6 +59,18 @@ The public fixture groups resize, JPEG recompression and brightness variants wit
 
 The public fixture contains `36` imbalanced REVIEW images. A budget of `12` covers all `6` classes, with one class represented in each of the first six positions. Dynamic rarity prevents small classes from being ignored while perceptual diversity suppresses repeated frames.
 
+### Exhaustive GT/AUTO human-review gate
+
+![Pre-generated same-target ambiguity review](docs/assets/review-gate-preview.jpg)
+
+The no-GPU fixture enumerates all four image/class states (`GT0_AUTO0`, `GT1_AUTO0`, `GT0_AUTO1`, `GT1_AUTO1`). It combines IoU, intersection-over-smaller-area, normalized center distance and area ratio to distinguish already-labelled objects, same-target extent disagreement, distinct missing objects and cross-class conflicts. High confidence remains evidence, not permission to write a label.
+
+### Production-scale validation
+
+![Anonymized production validation summary](docs/assets/production-validation-summary.svg)
+
+The review gate was also exercised on a private six-class dataset containing `29,071` images. Six specialist Teachers completed `174,426` image-model passes, produced `99,696` evidence rows and generated `30,183` review rows with `0` render failures while leaving the source labels unchanged. See the [anonymized case study](docs/PRODUCTION_VALIDATION.md).
+
 ## Why this project exists
 
 Multi-class datasets often contain combined scenes such as `person + helmet + smoking` or `person + slipper`. If the original annotation process focused on one target at a time, valid objects from other classes can be missing. Training a new multi-class model on incomplete labels can make the model learn the wrong supervision signal.
@@ -78,11 +90,14 @@ flowchart TD
     G --> I["REVIEW + audit CSV"]
     G --> J["AUTO candidate"]
     J --> M{"Optional verifier agreement"}
-    M -->|"supported"| K["Derived label tree"]
+    M -->|"supported evidence"| R["Exhaustive GT/AUTO review gate"]
     M -->|"unsupported"| I
+    I --> R
+    R -->|"explicit human decision"| K["Immutable derived label tree"]
     K --> N["Trainable YOLO dataset"]
     I --> L["HTML report and class-wise samples"]
     J --> L
+    R --> L
 ```
 
 ## Main properties
@@ -100,6 +115,9 @@ flowchart TD
 - Independent Teacher candidate streams can gate AUTO decisions with one-to-one spatial agreement without loading two models together.
 - Perceptual hashes, a BK-tree and conservative visual guards group repeated review work and expose near-duplicate split leakage.
 - Image-level active review combines confidence entropy, dynamically decayed class rarity and greedy perceptual diversity.
+- Exhaustive GT/AUTO accounting prevents candidate-only reports from hiding absence cases.
+- Offline review requires explicit add, replace, evaluation or reject decisions and autosaves progress.
+- Safe apply blocks unresolved decisions, detects source-GT drift, rechecks duplicates and creates an immutable derived dataset.
 - Every scan records a local manifest with parameters, image inventory, package versions, CUDA and GPU metadata.
 
 ## One-minute public demo
@@ -173,6 +191,23 @@ yolo-label-recovery prioritize D:\runs\candidates_review.csv D:\data\mining-safe
   --output-dir D:\runs\priority-review `
   --budget 500 `
   --redact-paths
+```
+
+Build an exhaustive offline review bundle from Teacher candidate evidence:
+
+```powershell
+python examples\create_review_fixture.py --output-dir .demo-review-fixture
+yolo-label-recovery review-build .demo-review-fixture\dataset .demo-review-fixture\candidates.csv `
+  --output-dir .demo-review-result `
+  --render `
+  --redact-paths
+```
+
+After every row has an explicit human decision, create a separate reviewed dataset:
+
+```powershell
+yolo-label-recovery review-apply D:\data\mining-safety D:\runs\company-review\company_decisions.csv `
+  --output-root D:\data\mining-safety-reviewed
 ```
 
 For GPU-assisted label recovery, first install the CUDA-compatible PyTorch build required by the target GPU, then install the inference extra:
@@ -295,6 +330,10 @@ See:
 - [Perceptual near-duplicate grouping (Simplified Chinese)](docs/NEAR_DUPLICATES.zh-CN.md)
 - [Active review prioritization](docs/ACTIVE_REVIEW.md)
 - [Active review prioritization (Simplified Chinese)](docs/ACTIVE_REVIEW.zh-CN.md)
+- [Exhaustive GT/AUTO human review](docs/HUMAN_REVIEW.md)
+- [Exhaustive GT/AUTO human review (Simplified Chinese)](docs/HUMAN_REVIEW.zh-CN.md)
+- [Production-scale validation](docs/PRODUCTION_VALIDATION.md)
+- [Production-scale validation (Simplified Chinese)](docs/PRODUCTION_VALIDATION.zh-CN.md)
 - [Interview presentation](docs/INTERVIEW_STORY.md)
 - [Portfolio and interview guide](docs/PORTFOLIO_GUIDE.md)
 - [Portfolio and interview guide (Simplified Chinese)](docs/PORTFOLIO_GUIDE.zh-CN.md)

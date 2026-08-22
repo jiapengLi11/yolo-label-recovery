@@ -2,7 +2,7 @@
 
 The roadmap separates implemented behavior from ideas that still need evidence. It is intentionally conservative: an item moves to "completed" only after tests and a reproducible example exist.
 
-## Completed through 0.8
+## Completed through 0.9
 
 - Sequential multi-teacher scanning with one YOLO model resident on the GPU at a time.
 - Per-class AUTO and REVIEW thresholds.
@@ -33,8 +33,13 @@ The roadmap separates implemented behavior from ideas that still need evidence. 
 - Image-level active review queues combining uncertainty, dynamic class rarity and visual diversity.
 - Original-candidate preservation, ranked exports and explicit biased-sampling boundaries.
 - Public six-class imbalanced review fixture, self-contained report and bilingual documentation.
+- Exhaustive GT/AUTO image-class matrix and candidate terminal-state coverage.
+- Multi-signal same-target matching with IoU, IoS, normalized center distance and area ratio.
+- Portable offline review bundle with autosave/resume and explicit add/replace/evaluation decisions.
+- Human-gated safe apply with source-GT drift checks, duplicate rechecks and evaluation-split isolation.
+- Public no-GPU review fixture, static evidence, bilingual documentation and CI coverage.
 
-## Planned for 0.9
+## Planned for 1.0
 
 - Teacher adapter interface for non-Ultralytics detectors.
 - Precision-oriented benchmark fixtures for AUTO and REVIEW queues.
@@ -42,7 +47,6 @@ The roadmap separates implemented behavior from ideas that still need evidence. 
 
 ## Research backlog
 
-- Active-learning prioritization using uncertainty and visual diversity.
 - Diversity-aware embedding adapters beyond perceptual hashes.
 - Review UI integrations through an exporter/importer boundary.
 

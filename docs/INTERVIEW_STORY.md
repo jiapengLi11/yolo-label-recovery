@@ -10,6 +10,8 @@ The engineering challenge was memory: six models and tens of thousands of images
 
 Long scans are checkpointed after every committed batch. Resume validates a run signature and uses idempotent CSV/label writes, so an interrupted batch can be replayed safely. A generated HTML report summarizes recovery volume, confidence/IoU distributions, adaptive batch behavior and visual samples.
 
+Production review showed that confidence and IoU alone were not enough for automatic writes. I added an exhaustive GT/AUTO gate using IoU, IoS, normalized center distance and area ratio, then separated model evidence, company review and safe apply into three auditable stages. The apply stage blocks unfinished decisions, detects source-label drift and creates a new dataset without changing the original.
+
 ## Strong technical points
 
 - `6 x N` inference work is accepted as the cost of specialist evidence; peak memory is controlled independently.
@@ -22,6 +24,8 @@ Long scans are checkpointed after every committed batch. Resume validates a run 
 - Perceptual near-duplicate grouping uses compact hashes and BK-tree radius search to reduce repeated review without loading all pixels or comparing every pair.
 - Active review ranking uses confidence entropy, diminishing class-rarity rewards and greedy visual diversity, while keeping metric estimation on a separate unbiased sample.
 - `doctor` and `manifest.json` make environment differences visible instead of leaving CUDA and dependency drift implicit.
+- GT/AUTO review makes the authority boundary explicit: models propose evidence, humans authorize label changes.
+- Same-target box disagreement is replaced transactionally rather than adding two contradictory boxes.
 
 ## Honest limitation
 

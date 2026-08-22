@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.0
+
+- Added exhaustive `GT0_AUTO0`, `GT1_AUTO0`, `GT0_AUTO1` and `GT1_AUTO1` image/class accounting.
+- Added pure-Python IoU, IoS, normalized center-distance and area-ratio decision rules for same-target and cross-class conflicts.
+- Added `review-build` for portable visual review bundles, full audit CSVs, decision templates and HTML summaries.
+- Added `review-ui`, an offline autosaving Tk reviewer with explicit add, replace, evaluation, reject and uncertain actions.
+- Added `review-apply` with unresolved-decision blocking, source-GT drift detection, duplicate rechecks and immutable derived datasets.
+- Added a packaged default six-class policy, public no-GPU fixture, static preview, bilingual documentation, ADR and CI coverage.
+- Added an anonymized production-scale case study covering 174,426 image-model passes and 30,183 review decisions.
+
 ## 0.8.0
 
 - Added the CPU-only, read-only `prioritize` command for image-level active human-review queues.

@@ -59,6 +59,18 @@
 
 公开样例包含 `36` 张类别不均衡的 REVIEW 图片。预算为 `12` 时覆盖全部 `6` 类，前六个位置每类各占一个。动态稀缺度避免小类被忽略，感知多样性则抑制重复连续帧。
 
+### GT/AUTO 全情况人工审核门控
+
+![预生成同目标框尺度冲突审核图](docs/assets/review-gate-preview.jpg)
+
+无 GPU 合成样例枚举 `GT0_AUTO0`、`GT1_AUTO0`、`GT0_AUTO1`、`GT1_AUTO1` 四种图片/类别状态，并联合 IoU、IoS、归一化中心距离和面积倍率，区分已标注目标、同目标框尺度不一致、不同漏标目标和跨类别冲突。高置信度仍然只是证据，不代表拥有写标签的权限。
+
+### 生产规模验证
+
+![脱敏生产规模验证汇总](docs/assets/production-validation-summary.svg)
+
+该人工门控还在一个包含 `29,071` 张图片的私有六分类数据集上完成全量验证。六个单类别 Teacher 共执行 `174,426` 次图片-模型推理，形成 `99,696` 条预测证据和 `30,183` 条审核项，可视化失败为 `0`，且源标签保持不变。详见[脱敏案例](docs/PRODUCTION_VALIDATION.zh-CN.md)。
+
 ## 为什么需要这个项目
 
 多类别数据集经常包含 `person + helmet + smoking`、`person + slipper` 等联合场景。如果原始标注工作每次只关注一个目标，图中其他类别的有效目标就可能漏标。使用不完整标签训练多类别模型时，这些目标会被当作背景，从而向模型传递错误监督信号。
@@ -78,11 +90,14 @@ flowchart TD
     G --> I["REVIEW + 审计 CSV"]
     G --> J["AUTO 候选"]
     J --> M{"可选验证 Teacher 一致性"}
-    M -->|"获得支持"| K["派生标签目录"]
+    M -->|"形成支持证据"| R["GT/AUTO 全情况人工门控"]
     M -->|"未获支持"| I
+    I --> R
+    R -->|"明确人工决策"| K["不可变派生标签目录"]
     K --> N["可训练 YOLO 数据集"]
     I --> L["HTML 报告与分类抽样图"]
     J --> L
+    R --> L
 ```
 
 ## 核心特性
@@ -100,6 +115,9 @@ flowchart TD
 - 使用独立 Teacher 候选流进行一对一空间一致性门控，无需同时加载两个模型。
 - 使用感知哈希、BK-tree 和保守视觉约束压缩重复审核工作，并发现跨划分近重复泄漏。
 - 图片级主动审核联合置信度熵、动态衰减类别稀缺度和贪心感知多样性。
+- 完整 GT/AUTO 枚举避免只看候选框的报告遗漏无预测状态。
+- 离线审核要求明确选择新增、替换、评测标签或拒绝，并自动保存审核进度。
+- 安全写回会阻止未完成决策、检测源 GT 漂移、再次查重，并创建不可变的派生数据集。
 - 每次扫描生成 manifest，记录参数、图片清单、依赖版本、CUDA 和 GPU 信息。
 
 ## 一分钟公开演示
@@ -173,6 +191,23 @@ yolo-label-recovery prioritize D:\runs\candidates_review.csv D:\data\mining-safe
   --output-dir D:\runs\priority-review `
   --budget 500 `
   --redact-paths
+```
+
+根据 Teacher 候选证据生成完整离线审核包：
+
+```powershell
+python examples\create_review_fixture.py --output-dir .demo-review-fixture
+yolo-label-recovery review-build .demo-review-fixture\dataset .demo-review-fixture\candidates.csv `
+  --output-dir .demo-review-result `
+  --render `
+  --redact-paths
+```
+
+全部候选完成人工决策后，创建一个独立的审核后数据集：
+
+```powershell
+yolo-label-recovery review-apply D:\data\mining-safety D:\runs\company-review\company_decisions.csv `
+  --output-root D:\data\mining-safety-reviewed
 ```
 
 如需使用 GPU 自动补标，请先安装与目标 GPU/CUDA 兼容的 PyTorch，再安装推理依赖：
@@ -295,6 +330,10 @@ out-root/
 - [感知近重复聚类（英文）](docs/NEAR_DUPLICATES.md)
 - [主动审核优先级（中文）](docs/ACTIVE_REVIEW.zh-CN.md)
 - [主动审核优先级（英文）](docs/ACTIVE_REVIEW.md)
+- [GT/AUTO 全情况人工审核（中文）](docs/HUMAN_REVIEW.zh-CN.md)
+- [GT/AUTO 全情况人工审核（英文）](docs/HUMAN_REVIEW.md)
+- [生产规模验证（中文）](docs/PRODUCTION_VALIDATION.zh-CN.md)
+- [生产规模验证（英文）](docs/PRODUCTION_VALIDATION.md)
 - [面试项目讲解](docs/INTERVIEW_STORY.md)
 - [作品集与面试指南（中文）](docs/PORTFOLIO_GUIDE.zh-CN.md)
 - [作品集与面试指南（英文）](docs/PORTFOLIO_GUIDE.md)

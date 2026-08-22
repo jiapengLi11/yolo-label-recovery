@@ -1,0 +1,24 @@
+version: 2
+classes:
+  person: {high_conf: 0.85, review_conf: 0.60}
+  helmet: {high_conf: 0.80, review_conf: 0.55}
+  vest: {high_conf: 0.80, review_conf: 0.55}
+  tractor: {high_conf: 0.85, review_conf: 0.60}
+  slipper: {high_conf: 0.75, review_conf: 0.45}
+  smoking: {high_conf: 0.80, review_conf: 0.40}
+
+geometry:
+  existing_high_iou: 0.60
+  existing_high_ios: 0.90
+  existing_high_center_distance: 0.35
+  existing_ambiguous_iou: 0.20
+  existing_ambiguous_ios: 0.55
+  existing_ambiguous_center_distance: 0.80
+  candidate_duplicate_iou: 0.90
+  cross_class_conflict_iou: 0.65
+  cross_class_conflict_area_ratio: 2.00
+
+split_policy:
+  train: review_and_apply
+  val: review_gold_only
+  test: review_gold_only
