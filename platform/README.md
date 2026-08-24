@@ -9,6 +9,10 @@ This directory turns the offline review queue into a multi-user web workflow:
 - `tools/import_review_queue.py`: bounded, idempotent bridge from `review_queue.csv`.
 - `docker-compose.yml`: MySQL, API and Nginx-hosted frontend.
 
+![Running review workspace](../docs/assets/platform-review-workspace.png)
+
+The image above is a capture of the running application with a real review visual and seeded collaboration records, not a mockup. Additional login and administration screenshots are available in [COLLABORATION_PLATFORM.md](../docs/COLLABORATION_PLATFORM.md).
+
 ```powershell
 cd platform
 Copy-Item .env.example .env

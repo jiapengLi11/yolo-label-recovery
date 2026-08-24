@@ -6,7 +6,20 @@ The original Tk reviewer remains the best zero-dependency choice for one reviewe
 
 原有 Tk 审核器仍适合单人、离线和拷贝即用场景。多人并行后会新增四类风险：重复领取、旧页面覆盖、跨项目越权和责任不可追溯。Web 协作层只负责账号、任务与决策，不取代 Python 推理、GT/AUTO 枚举和最终派生数据集生成。
 
-## 2. Architecture / 架构
+## 2. Running interface / 真实运行界面
+
+![Multi-user workspace with a claimed task and real review image](assets/platform-review-workspace.png)
+
+<p>
+  <img src="assets/platform-login.png" width="49%" alt="Login and role entry">
+  <img src="assets/platform-admin-console.png" width="49%" alt="Admin account and membership management">
+</p>
+
+The screenshots above were captured from the actual Vue and Spring Boot services with seeded local collaboration records. They demonstrate the real login flow, project progress, atomic task claim, read-only review visual delivery, constrained decisions, account creation and member assignment. They are not UI mockups.
+
+以上截图由真实运行的 Vue 与 Spring Boot 服务生成，并加载了本地演示协作记录。截图覆盖登录、项目进度、原子领取任务、只读审核图加载、受约束决策、账号创建和成员分配，不是界面示意图。
+
+## 3. Architecture / 架构
 
 ```mermaid
 flowchart TB
@@ -31,7 +44,7 @@ flowchart TB
 | Persistence | MySQL 8.4, JPA, Flyway | Users, projects, memberships, tasks, decisions, schema migrations |
 | Delivery | Docker Compose, Nginx | One-command three-service deployment and same-origin API proxy |
 
-## 3. Authorization model / 权限模型
+## 4. Authorization model / 权限模型
 
 Authentication and authorization are separate.
 
@@ -43,7 +56,7 @@ Authentication and authorization are separate.
 
 权限采用两层模型：角色决定“能做什么”，项目成员关系决定“能在哪个项目做”。即使知道任务 ID，未加入项目的账号也无法读取审核图。
 
-## 4. Concurrency and correctness / 并发与正确性
+## 5. Concurrency and correctness / 并发与正确性
 
 ### Atomic claim / 原子领取
 
@@ -61,7 +74,7 @@ Every task carries JPA `@Version`. The client submits `expectedVersion` with a d
 
 `(project_id, candidate_id)` is unique, so importing the same queue again safely skips existing candidates. `review_decisions.task_id` is also unique, so one task cannot obtain two final decisions even if a client retries.
 
-## 5. State and data model / 状态与数据模型
+## 6. State and data model / 状态与数据模型
 
 ```mermaid
 stateDiagram-v2
@@ -75,7 +88,7 @@ stateDiagram-v2
 
 Core tables are `app_users`, `review_projects`, `project_members`, `review_tasks`, `review_decisions` and `audit_events`. Flyway owns schema evolution; Hibernate validates rather than mutates the production schema.
 
-## 6. Run with Docker Compose / Docker 一键运行
+## 7. Run with Docker Compose / Docker 一键运行
 
 ```powershell
 cd platform
@@ -90,7 +103,7 @@ docker compose up -d --build
 
 Open `http://localhost:8088`. The bootstrap admin is created only when the configured username does not already exist.
 
-## 7. Import an existing queue / 导入现有审核队列
+## 8. Import an existing queue / 导入现有审核队列
 
 The queue must contain `candidate_id`, `split`, `image_name`, `class_name`, `conf`, `case_code`, `recommended_action` and `visual_file`. `visual_file` must be relative to the mounted review package root.
 
@@ -108,7 +121,7 @@ The importer reads one CSV row at a time and uploads at most 500 rows per reques
 
 After creating reviewer accounts in the admin drawer, assign each username to the selected project. Reviewers then see only their assigned projects.
 
-## 8. Local development / 本地开发
+## 9. Local development / 本地开发
 
 ```powershell
 # Backend
@@ -124,7 +137,7 @@ npm run dev
 
 The Vite development server proxies `/api` to `localhost:8080`. Tests use H2 in MySQL compatibility mode; production uses MySQL and Flyway.
 
-## 9. API surface / 主要接口
+## 10. API surface / 主要接口
 
 | Method | Path | Meaning |
 |---|---|---|
@@ -138,7 +151,7 @@ The Vite development server proxies `/api` to `localhost:8080`. Tests use H2 in 
 | GET | `/api/tasks/{id}/visual` | Read an authorized real review image |
 | GET | `/api/projects/{id}/audit` | Read project audit trail, admin/auditor |
 
-## 10. Interview walkthrough / 面试讲解顺序
+## 11. Interview walkthrough / 面试讲解顺序
 
 1. Start from the data problem: incomplete labels make true objects become false background supervision.
 2. Explain why offline inference and online review are separated: GPU jobs are expensive and bursty; human review is concurrent and stateful.
@@ -147,6 +160,6 @@ The Vite development server proxies `/api` to `localhost:8080`. Tests use H2 in 
 5. Show bounded idempotent import and read-only visual mounts as memory-safety and data-safety decisions.
 6. Close with evidence: production queue scale, real grouped images, automated Java/Python tests and reproducible Docker deployment.
 
-## 11. Production hardening / 生产加固
+## 12. Production hardening / 生产加固
 
 Before exposing the service beyond a trusted LAN, terminate TLS at a reverse proxy, rotate JWT/database secrets, disable bootstrap admin after first setup, back up MySQL, centralize logs and metrics, and define account disable/password-reset procedures. Docker Compose is an auditable single-host baseline; Kubernetes or managed databases are deployment choices, not prerequisites for the core workflow.

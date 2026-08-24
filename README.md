@@ -15,7 +15,7 @@ This project was extracted from an industrial safety-vision workflow. It uses on
 
 ## Pre-generated showcase
 
-No GPU or live command is needed to inspect these results. Analytical report screenshots use committed synthetic fixtures; the grouped-review gallery uses real, user-approved production review samples to show the actual operating experience. Screenshots demonstrate behavior and report structure, not model accuracy claims.
+No GPU or live command is needed to inspect these results. Analytical report screenshots use committed synthetic fixtures; the grouped-review gallery and web-platform captures use real, user-approved production review samples to show the actual operating experience. Screenshots demonstrate behavior and report structure, not model accuracy claims.
 
 ### Model-free dataset audit
 
@@ -83,6 +83,15 @@ See [Grouped Review Application](docs/GROUPED_REVIEW_APP.md) for the queue contr
 ### Multi-user collaboration platform
 
 The repository now includes a deployable web platform for teams that outgrow the portable desktop reviewer. A Vue 3 + TypeScript client talks to a Spring Boot 4 REST API backed by MySQL and Flyway. JWT authentication, `ADMIN / REVIEWER / AUDITOR` RBAC, project membership, pessimistic task claiming, renewable leases, optimistic versions and immutable audit events prevent duplicate work and stale decisions. The Python bridge streams the existing `review_queue.csv` into the API in bounded, idempotent batches.
+
+![Running multi-user review workspace with a real GT/AUTO review image](docs/assets/platform-review-workspace.png)
+
+<p>
+  <img src="docs/assets/platform-login.png" width="49%" alt="Role-aware login screen">
+  <img src="docs/assets/platform-admin-console.png" width="49%" alt="Administrator account and project-member management">
+</p>
+
+These are captures of the actual Vue + Spring Boot application running against seeded local collaboration data, not design mockups. The workspace shows a claimed task, real review visual, class confidence, constrained decisions and live project progress; the admin view demonstrates account creation and project membership assignment.
 
 ```mermaid
 flowchart LR
