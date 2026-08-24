@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0
+
+- Promoted the offline reviewer into an image-grouped, bilingual human-in-the-loop review application.
+- Added one-image/many-candidate navigation so overlapping and cross-class evidence can be judged in context.
+- Added action-aware controls that disable invalid add, replace and evaluation decisions for each case.
+- Added append-only JSONL journaling, periodic atomic CSV checkpoints and crash-safe resume.
+- Added deterministic train-first, hard-case and rare-class queue ordering for large review jobs.
+- Added portable Chinese and English Windows launchers with working-directory and quoted-path safeguards.
+- Added a grouped synthetic fixture, a real application screenshot and focused persistence/grouping tests.
+
 ## 0.9.0
 
 - Added exhaustive `GT0_AUTO0`, `GT1_AUTO0`, `GT0_AUTO1` and `GT1_AUTO1` image/class accounting.

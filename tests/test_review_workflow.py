@@ -121,6 +121,7 @@ def test_build_review_package_covers_matrix_and_renders_offline_bundle(tmp_path)
     assert image_cases == {"GT0_AUTO0", "GT0_AUTO1", "GT1_AUTO0", "GT1_AUTO1"}
     assert len(list((output / "visuals").rglob("*.jpg"))) == 4
     assert (output / "START_REVIEW.bat").is_file()
+    assert (output / "START_REVIEW_EN.bat").is_file()
     assert (output / "review_gui.py").is_file()
     summary = json.loads(paths["summary"].read_text(encoding="utf-8"))
     assert summary["dataset_root"] == "<redacted>"

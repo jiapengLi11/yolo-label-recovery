@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-16a085.svg)](LICENSE)
 
-A safe, auditable and memory-efficient multi-teacher pipeline for recovering missing annotations in YOLO datasets.
+A safe, auditable and memory-efficient multi-teacher annotation recovery and human-review platform for YOLO datasets.
 
 This project was extracted from an industrial safety-vision workflow. It uses one detector per class to scan a multi-class dataset, identifies high-confidence predictions that are not covered by existing labels, and writes additions to a new label tree without modifying the source dataset.
 
@@ -65,6 +65,14 @@ The public fixture contains `36` imbalanced REVIEW images. A budget of `12` cove
 
 The no-GPU fixture enumerates all four image/class states (`GT0_AUTO0`, `GT1_AUTO0`, `GT0_AUTO1`, `GT1_AUTO1`). It combines IoU, intersection-over-smaller-area, normalized center distance and area ratio to distinguish already-labelled objects, same-target extent disagreement, distinct missing objects and cross-class conflicts. High confidence remains evidence, not permission to write a label.
 
+### Image-grouped desktop review application
+
+![Bilingual image-grouped review application](docs/assets/grouped-review-preview.png)
+
+The portable Tk application groups every candidate belonging to the same source image. Reviewers can compare overlapping classes in context, switch between boxes without reloading the image, and only choose actions permitted by the decision engine. It supports Chinese and English interfaces, keyboard review, append-only JSONL journaling, periodic atomic CSV checkpoints and crash-safe resume. The screenshot above is generated from the committed no-GPU fixture and contains two candidates in one image.
+
+See [Grouped Review Application](docs/GROUPED_REVIEW_APP.md) for the queue contract, persistence model and deployment workflow.
+
 ### Production-scale validation
 
 ![Anonymized production validation summary](docs/assets/production-validation-summary.svg)
@@ -117,6 +125,8 @@ flowchart TD
 - Image-level active review combines confidence entropy, dynamically decayed class rarity and greedy perceptual diversity.
 - Exhaustive GT/AUTO accounting prevents candidate-only reports from hiding absence cases.
 - Offline review requires explicit add, replace, evaluation or reject decisions and autosaves progress.
+- The desktop reviewer groups candidates by image, supports Chinese/English UI and disables actions that are invalid for the current decision case.
+- Every click is first persisted to an append-only JSONL journal; CSV snapshots use atomic replacement for safe recovery after interruption.
 - Safe apply blocks unresolved decisions, detects source-GT drift, rechecks duplicates and creates an immutable derived dataset.
 - Every scan records a local manifest with parameters, image inventory, package versions, CUDA and GPU metadata.
 

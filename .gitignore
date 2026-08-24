@@ -8,6 +8,7 @@ build/
 dist/
 dist-*/
 *.egg-info/
+.wheel-check/
 
 # Local data and model artifacts
 datasets/

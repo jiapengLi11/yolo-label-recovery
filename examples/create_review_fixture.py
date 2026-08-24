@@ -92,6 +92,7 @@ def create_fixture(output_dir: Path, force: bool = False) -> tuple[Path, Path]:
 
     rows = [
         _candidate("missing.jpg", "helmet", 1, 0.93, (0.5, 0.23, 0.2, 0.13)),
+        _candidate("missing.jpg", "smoking", 5, 0.84, (0.57, 0.43, 0.08, 0.08)),
         _candidate("same.jpg", "person", 0, 0.95, (0.58, 0.56, 0.34, 0.72)),
         _candidate("cross.jpg", "helmet", 1, 0.91, (0.5, 0.56, 0.28, 0.65)),
         _candidate("eval.jpg", "smoking", 5, 0.86, (0.58, 0.32, 0.09, 0.09), split="val"),

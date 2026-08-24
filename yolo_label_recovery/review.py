@@ -414,15 +414,19 @@ def build_review_package(
     shutil.copy2(Path(__file__).with_name("review_gui.py"), output_dir / "review_gui.py")
     shutil.copy2(policy_path, output_dir / "review_policy_used.yaml")
     (output_dir / "START_REVIEW.bat").write_text(
-        '@echo off\r\npython "%~dp0review_gui.py" --review-root "%~dp0"\r\nif errorlevel 1 pause\r\n',
+        '@echo off\r\npushd "%~dp0"\r\npython review_gui.py --review-root "." --lang zh-CN\r\nif errorlevel 1 pause\r\npopd\r\n',
+        encoding="ascii",
+    )
+    (output_dir / "START_REVIEW_EN.bat").write_text(
+        '@echo off\r\npushd "%~dp0"\r\npython review_gui.py --review-root "." --lang en\r\nif errorlevel 1 pause\r\npopd\r\n',
         encoding="ascii",
     )
     (output_dir / "REVIEW_GUIDE_CN.txt").write_text(
         "公司人工审核说明\n"
-        "1. 双击 START_REVIEW.bat 打开审核界面。\n"
+        "1. 双击 START_REVIEW.bat 打开按图片聚合的中文审核界面。\n"
         "2. 红框是 AUTO；其他颜色框是原 GT；金黄色加粗框是最接近的同类 GT。\n"
         "3. A=新增，P=替换高亮同类 GT，E=接受为 val/test 评测标签，D=拒绝，U=暂不确定。\n"
-        "4. 决策自动保存到 company_decisions.csv，关闭后可以续审。\n"
+        "4. 每次决策先写入 JSONL 日志；CSV 定期原子保存，异常退出后也可续审。\n"
         "5. 回传前必须处理全部空白和 uncertain，并回传整个文件夹。\n",
         encoding="utf-8",
     )
