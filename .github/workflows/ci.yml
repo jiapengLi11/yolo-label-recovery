@@ -54,7 +54,7 @@ jobs:
         run: |
           python examples/create_review_fixture.py --output-dir /tmp/ylr-review-fixture
           yolo-label-recovery review-build /tmp/ylr-review-fixture/dataset /tmp/ylr-review-fixture/candidates.csv --output-dir /tmp/ylr-review-output --render --redact-paths
-          python -c "import json; d=json.load(open('/tmp/ylr-review-output/summary.json')); assert d['review_rows']==4 and d['render_failures']==0 and set(d['image_class_cases'])=={'GT0_AUTO0','GT0_AUTO1','GT1_AUTO0','GT1_AUTO1'}"
+          python -c "import json; d=json.load(open('/tmp/ylr-review-output/summary.json')); assert d['prediction_rows']==5 and d['review_rows']==5 and d['render_failures']==0 and set(d['image_class_cases'])=={'GT0_AUTO0','GT0_AUTO1','GT1_AUTO0','GT1_AUTO1'}"
       - name: Build wheel
         run: python -m pip wheel --no-deps --wheel-dir dist .
       - name: Reject private artifacts
