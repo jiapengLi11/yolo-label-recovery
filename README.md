@@ -5,6 +5,8 @@
 [![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jiapengLi11/yolo-label-recovery)](https://github.com/jiapengLi11/yolo-label-recovery/releases)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)](platform/backend)
+[![Vue](https://img.shields.io/badge/Vue-3.5-42B883?logo=vuedotjs&logoColor=white)](platform/frontend)
 [![License: MIT](https://img.shields.io/badge/license-MIT-16a085.svg)](LICENSE)
 
 A safe, auditable and memory-efficient multi-teacher annotation recovery and human-review platform for YOLO datasets.
@@ -13,7 +15,7 @@ This project was extracted from an industrial safety-vision workflow. It uses on
 
 ## Pre-generated showcase
 
-No GPU, private dataset or live command is needed to inspect these results. The screenshots were generated from committed synthetic fixtures. They demonstrate behavior and report structure, not production accuracy.
+No GPU or live command is needed to inspect these results. Analytical report screenshots use committed synthetic fixtures; the grouped-review gallery uses real, user-approved production review samples to show the actual operating experience. Screenshots demonstrate behavior and report structure, not model accuracy claims.
 
 ### Model-free dataset audit
 
@@ -69,9 +71,28 @@ The no-GPU fixture enumerates all four image/class states (`GT0_AUTO0`, `GT1_AUT
 
 ![Bilingual image-grouped review application](docs/assets/grouped-review-preview.png)
 
-The portable Tk application groups every candidate belonging to the same source image. Reviewers can compare overlapping classes in context, switch between boxes without reloading the image, and only choose actions permitted by the decision engine. It supports Chinese and English interfaces, keyboard review, append-only JSONL journaling, periodic atomic CSV checkpoints and crash-safe resume. The screenshot above is generated from the committed no-GPU fixture and contains two candidates in one image.
+<p>
+  <img src="docs/assets/grouped-review-joint-scene.jpg" width="49%" alt="Real joint-scene review with four candidates">
+  <img src="docs/assets/grouped-review-multibox-scene.jpg" width="49%" alt="Real mine review with five candidates">
+</p>
+
+The portable Tk application groups every candidate belonging to the same source image. Reviewers can compare overlapping classes in context, switch between boxes without reloading the image, and only choose actions permitted by the decision engine. It supports Chinese and English interfaces, keyboard review, append-only JSONL journaling, periodic atomic CSV checkpoints and crash-safe resume. The gallery above comes from a real production review package and includes multi-class, multi-box joint scenes.
 
 See [Grouped Review Application](docs/GROUPED_REVIEW_APP.md) for the queue contract, persistence model and deployment workflow.
+
+### Multi-user collaboration platform
+
+The repository now includes a deployable web platform for teams that outgrow the portable desktop reviewer. A Vue 3 + TypeScript client talks to a Spring Boot 4 REST API backed by MySQL and Flyway. JWT authentication, `ADMIN / REVIEWER / AUDITOR` RBAC, project membership, pessimistic task claiming, renewable leases, optimistic versions and immutable audit events prevent duplicate work and stale decisions. The Python bridge streams the existing `review_queue.csv` into the API in bounded, idempotent batches.
+
+```mermaid
+flowchart LR
+    P["Python Multi-Teacher pipeline"] -->|"review_queue.csv / batches <= 500"| A["Spring Boot API"]
+    V["Vue review workspace"] -->|"JWT + heartbeat + decisions"| A
+    A --> M[("MySQL + Flyway")]
+    A --> R["Read-only review visuals"]
+```
+
+See [Collaboration Platform](docs/COLLABORATION_PLATFORM.md) for deployment, API contracts, concurrency design and interview walkthrough.
 
 ### Production-scale validation
 

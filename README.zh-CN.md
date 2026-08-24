@@ -5,6 +5,8 @@
 [![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jiapengLi11/yolo-label-recovery)](https://github.com/jiapengLi11/yolo-label-recovery/releases)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)](platform/backend)
+[![Vue](https://img.shields.io/badge/Vue-3.5-42B883?logo=vuedotjs&logoColor=white)](platform/frontend)
 [![License: MIT](https://img.shields.io/badge/license-MIT-16a085.svg)](LICENSE)
 
 一个安全、可审计、内存友好的多 Teacher YOLO 漏标恢复与人机协同审核平台。
@@ -13,7 +15,7 @@
 
 ## 预生成展示结果
 
-查看以下结果不需要 GPU、私有数据集或现场执行命令。以下截图均由仓库内的合成测试数据生成，用于展示工具行为和报告结构，不代表生产数据精度。
+查看以下结果不需要 GPU 或现场执行命令。分析报告截图来自仓库内置合成数据；按图片聚合审核图库使用已获许可的真实生产审核样例，用于展示实际工作体验。所有截图都只说明工具行为和报告结构，不构成模型精度声明。
 
 ### 无模型数据集审计
 
@@ -69,9 +71,28 @@
 
 ![中英双语按图片聚合审核平台](docs/assets/grouped-review-preview.png)
 
-便携式 Tk 审核器会把同一原图上的所有候选框聚合展示。审核人员可以结合重叠类别和联合场景判断候选，在不重复加载图片的情况下切换框，并且只能选择决策引擎允许的动作。平台支持中英文界面、键盘审核、JSONL 追加日志、CSV 原子检查点和异常退出续审。上图来自仓库内置的无 GPU 合成样例，同一张图片中包含两个待审核候选。
+<p>
+  <img src="docs/assets/grouped-review-joint-scene.jpg" width="49%" alt="真实联合场景四候选审核">
+  <img src="docs/assets/grouped-review-multibox-scene.jpg" width="49%" alt="真实矿区五候选审核">
+</p>
+
+便携式 Tk 审核器会把同一原图上的所有候选框聚合展示。审核人员可以结合重叠类别和联合场景判断候选，在不重复加载图片的情况下切换框，并且只能选择决策引擎允许的动作。平台支持中英文界面、键盘审核、JSONL 追加日志、CSV 原子检查点和异常退出续审。上方图库来自真实生产审核包，包含多类别、多框联合场景。
 
 队列字段约定、持久化原理和交付流程详见[按图片聚合审核平台设计](docs/GROUPED_REVIEW_APP.md)。
+
+### 多人登录协作平台
+
+当便携式桌面审核器无法满足多人并行工作时，可以启用仓库内的 Web 协作平台。Vue 3 + TypeScript 前端连接 Spring Boot 4 REST API，使用 MySQL + Flyway 持久化；JWT 登录、`ADMIN / REVIEWER / AUDITOR` 角色、项目成员隔离、悲观锁原子领任务、可续租心跳、乐观版本号和不可变审计事件共同防止重复审核与旧页面覆盖。Python 桥接脚本会把现有 `review_queue.csv` 以有界、幂等批次流式导入。
+
+```mermaid
+flowchart LR
+    P["Python Multi-Teacher 流水线"] -->|"review_queue.csv / 每批不超过 500"| A["Spring Boot API"]
+    V["Vue 多人审核工作台"] -->|"JWT + 心跳 + 决策"| A
+    A --> M[("MySQL + Flyway")]
+    A --> R["只读审核图目录"]
+```
+
+部署命令、接口契约、并发原理和面试讲解见[多人协作平台设计](docs/COLLABORATION_PLATFORM.md)。
 
 ### 生产规模验证
 

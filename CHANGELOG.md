@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+- Added a Spring Boot 4, Vue 3 and MySQL collaboration platform for multi-user human review.
+- Added JWT authentication, role-based access control and project-level membership isolation.
+- Added pessimistic task claiming, renewable leases and optimistic versions to prevent duplicate and stale decisions.
+- Added idempotent bounded-batch import from the existing Python review queue plus read-only visual serving.
+- Added Docker Compose deployment, Flyway schema management, integration tests and real production review screenshots.
+
 ## 1.0.0
 
 - Promoted the offline reviewer into an image-grouped, bilingual human-in-the-loop review application.

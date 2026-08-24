@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+node_modules/
 build/
 dist/
 dist-*/
@@ -34,6 +35,11 @@ config.local.*
 *.local.json
 .env
 .demo-*/
+.demo-*.png
+platform/backend/.m2-repository/
+platform/backend/target/
+platform/frontend/dist/
+platform/frontend/*.tsbuildinfo
 
 # IDE and OS files
 .idea/

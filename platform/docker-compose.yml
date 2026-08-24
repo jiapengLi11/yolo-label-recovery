@@ -1,0 +1,52 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: label_review
+      MYSQL_USER: reviewer
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+    volumes:
+      - label-review-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      LABEL_REVIEW_DB_URL: jdbc:mysql://mysql:3306/label_review?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      LABEL_REVIEW_DB_USER: reviewer
+      LABEL_REVIEW_DB_PASSWORD: ${MYSQL_PASSWORD}
+      LABEL_REVIEW_JWT_SECRET: ${JWT_SECRET_BASE64:?set JWT_SECRET_BASE64 in .env}
+      LABEL_REVIEW_BOOTSTRAP_ADMIN: "true"
+      LABEL_REVIEW_ADMIN_USER: ${BOOTSTRAP_ADMIN_USERNAME:-admin}
+      LABEL_REVIEW_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:?set BOOTSTRAP_ADMIN_PASSWORD in .env}
+      LABEL_REVIEW_ADMIN_DISPLAY_NAME: ${BOOTSTRAP_ADMIN_DISPLAY_NAME:-System Admin}
+      LABEL_REVIEW_LEASE_MINUTES: ${REVIEW_LEASE_MINUTES:-5}
+    volumes:
+      - ${REVIEW_PACKAGE_DIR:?set REVIEW_PACKAGE_DIR in .env}:/review-data:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${PLATFORM_PORT:-8088}:80"
+
+volumes:
+  label-review-db:

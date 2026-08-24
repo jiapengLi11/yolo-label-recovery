@@ -19,8 +19,8 @@ jobs:
           python -m pip install -e ".[inference,dev]"
       - name: Compile and test
         run: |
-          python -m compileall -q autolabel_with_single_class_models.py yolo_label_recovery tests
-          ruff check autolabel_with_single_class_models.py yolo_label_recovery tests examples
+          python -m compileall -q autolabel_with_single_class_models.py yolo_label_recovery tests platform/tools
+          ruff check autolabel_with_single_class_models.py yolo_label_recovery tests examples platform/tools
           python tests/run_smoke_tests.py
           pytest
       - name: Generate public demo report
@@ -73,3 +73,35 @@ jobs:
             echo "Machine-specific path found. Replace it with a portable example."
             exit 1
           fi
+
+  collaboration-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform/backend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Test Spring Boot collaboration API
+        run: mvn --batch-mode test
+
+  collaboration-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform/frontend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: platform/frontend/package-lock.json
+      - name: Build Vue collaboration workspace
+        run: |
+          npm ci
+          npm run build

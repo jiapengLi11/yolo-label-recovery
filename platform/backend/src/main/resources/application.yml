@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: label-review-platform
+  datasource:
+    url: ${LABEL_REVIEW_DB_URL:jdbc:mysql://localhost:3306/label_review?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${LABEL_REVIEW_DB_USER:label_review}
+    password: ${LABEL_REVIEW_DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+app:
+  jwt:
+    issuer: ${LABEL_REVIEW_JWT_ISSUER:yolo-label-recovery}
+    secret: ${LABEL_REVIEW_JWT_SECRET}
+    ttl-minutes: ${LABEL_REVIEW_JWT_TTL_MINUTES:480}
+  review:
+    lease-minutes: ${LABEL_REVIEW_LEASE_MINUTES:10}
+  bootstrap-admin:
+    enabled: ${LABEL_REVIEW_BOOTSTRAP_ADMIN:false}
+    username: ${LABEL_REVIEW_ADMIN_USER:admin}
+    password: ${LABEL_REVIEW_ADMIN_PASSWORD:}
+    display-name: ${LABEL_REVIEW_ADMIN_DISPLAY_NAME:System Administrator}
