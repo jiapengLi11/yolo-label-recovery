@@ -40,6 +40,10 @@ platform/backend/.m2-repository/
 platform/backend/target/
 platform/frontend/dist/
 platform/frontend/*.tsbuildinfo
+platform/campus-deploy/campus.local.env
+platform/campus-deploy/本机平台登录信息.txt
+platform/campus-deploy/platform.pid
+platform/campus-deploy/logs/
 
 # IDE and OS files
 .idea/

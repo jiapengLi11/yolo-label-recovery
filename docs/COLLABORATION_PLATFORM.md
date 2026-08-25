@@ -8,16 +8,18 @@ The original Tk reviewer remains the best zero-dependency choice for one reviewe
 
 ## 2. Running interface / 真实运行界面
 
-![Multi-user workspace with a claimed task and real review image](assets/platform-review-workspace.png)
+![Real collaboration dashboard / 真实协作进度看板](assets/platform-dashboard.png)
 
 <p>
   <img src="assets/platform-login.png" width="49%" alt="Login and role entry">
-  <img src="assets/platform-admin-console.png" width="49%" alt="Admin account and membership management">
+  <img src="assets/platform-admin.png" width="49%" alt="Admin account and membership management">
 </p>
 
-The screenshots above were captured from the actual Vue and Spring Boot services with seeded local collaboration records. They demonstrate the real login flow, project progress, atomic task claim, read-only review visual delivery, constrained decisions, account creation and member assignment. They are not UI mockups.
+![Real joint-scene review workspace / 真实联合场景审核工作台](assets/platform-review.png)
 
-以上截图由真实运行的 Vue 与 Spring Boot 服务生成，并加载了本地演示协作记录。截图覆盖登录、项目进度、原子领取任务、只读审核图加载、受约束决策、账号创建和成员分配，不是界面示意图。
+The screenshots above were captured from the actual Vue and Spring Boot services against a real, user-approved review package. They demonstrate the real login flow, project progress, atomic task claim, read-only review visual delivery, constrained decisions, account creation and member assignment. They are not UI mockups and do not represent model-accuracy evidence.
+
+以上截图由真实运行的 Vue 与 Spring Boot 服务生成，并加载了经许可使用的真实审核包。截图覆盖登录、项目进度、原子领取任务、只读审核图加载、受约束决策、账号创建和成员分配，不是界面示意图，也不作为模型精度证据。
 
 ## 3. Architecture / 架构
 
@@ -42,7 +44,7 @@ flowchart TB
 | Web client | Vue 3, TypeScript, Vite | Login, project progress, real-image review, heartbeat, constrained decisions |
 | API | Java 21, Spring Boot 4, Spring Security | Authentication, authorization, leasing, decisions, audit and visual access |
 | Persistence | MySQL 8.4, JPA, Flyway | Users, projects, memberships, tasks, decisions, schema migrations |
-| Delivery | Docker Compose, Nginx | One-command three-service deployment and same-origin API proxy |
+| Delivery | Docker Compose or Windows JAR | Containerized three-service deployment, or a trusted-LAN host with optional VM-hosted MySQL |
 
 ## 4. Authorization model / 权限模型
 
@@ -73,6 +75,16 @@ Every task carries JPA `@Version`. The client submits `expectedVersion` with a d
 ### Idempotent import and one decision / 幂等导入与唯一决定
 
 `(project_id, candidate_id)` is unique, so importing the same queue again safely skips existing candidates. `review_decisions.task_id` is also unique, so one task cannot obtain two final decisions even if a client retries.
+
+### Validated concurrent workflow / 已验证的并发流程
+
+The platform was exercised on a trusted campus LAN with two independent accounts reviewing at the same time. The production-shaped project contained `30,183` candidates. A previous desktop review file containing `4,465` decisions was migrated after task import; at migration time this became `4,464` completed tasks and `1` escalated task. Re-running the migration skipped existing decisions instead of duplicating them.
+
+平台已在可信校园网中用两个独立账号同时领取和审核任务。真实规模项目包含 `30,183` 条候选；桌面端已完成的 `4,465` 条历史决定在任务导入后迁移为 `4,464` 条完成和 `1` 条疑难升级。重复迁移时已存在决定会被跳过，不会生成重复结果。
+
+This test verified atomic allocation, lease ownership, historical migration, real-image access and audit attribution. It did not attempt to establish a maximum concurrent-user capacity.
+
+本轮验证覆盖了原子分配、租约归属、历史迁移、真实图片读取和审核人追溯，但没有把双账号试用夸大为最大并发能力测试。
 
 ## 6. State and data model / 状态与数据模型
 
@@ -110,6 +122,7 @@ The queue must contain `candidate_id`, `split`, `image_name`, `class_name`, `con
 ```powershell
 python platform\tools\import_review_queue.py `
   D:\review_package\review_queue.csv `
+  --decisions D:\review_package\company_decisions.csv `
   --base-url http://localhost:8088 `
   --username admin `
   --password "your-admin-password" `
@@ -117,7 +130,9 @@ python platform\tools\import_review_queue.py `
   --review-root /review-data
 ```
 
-The importer reads one CSV row at a time and uploads at most 500 rows per request. It does not load the full queue or all images into memory. Re-running the same command is safe because candidate IDs are idempotent.
+The importer reads one CSV row at a time and uploads at most 500 rows per request. It does not load the full queue or all images into memory. After tasks exist, `--decisions` migrates historical desktop outcomes in bounded batches. Both phases are idempotent: candidate IDs and existing decisions are skipped safely on retries.
+
+导入器逐行读取 CSV，每次最多上传 500 条，不会把完整队列或全部图片装入内存。任务建立后，`--decisions` 会继续按有界批次迁移桌面审核结果。两个阶段都支持安全重试，已存在的候选和决定会被幂等跳过。
 
 After creating reviewer accounts in the admin drawer, assign each username to the selected project. Reviewers then see only their assigned projects.
 
@@ -137,6 +152,14 @@ npm run dev
 
 The Vite development server proxies `/api` to `localhost:8080`. Tests use H2 in MySQL compatibility mode; production uses MySQL and Flyway.
 
+### Trusted LAN deployment / 可信局域网部署
+
+For a small team on the same trusted network, the platform can run directly on a Windows host while MySQL runs locally, in VMware, or on another LAN server. The scripts check database reachability, optionally start the VM without a visible window, launch the JAR, poll the health endpoint and expose only a configurable URL and subnet.
+
+同一可信局域网内的小团队可以直接使用 Windows 主机部署，MySQL 可运行在本机、VMware 或局域网数据库服务器。配套脚本会检查数据库、按需无界面启动虚拟机、启动 JAR、轮询健康状态，并通过本机忽略配置指定访问地址和允许网段。
+
+See [campus-deploy/README.md](../platform/campus-deploy/README.md). Local passwords, database addresses, VM paths, logs and PID files are Git-ignored.
+
 ## 10. API surface / 主要接口
 
 | Method | Path | Meaning |
@@ -145,21 +168,35 @@ The Vite development server proxies `/api` to `localhost:8080`. Tests use H2 in 
 | GET | `/api/projects` | List visible projects |
 | POST | `/api/projects/{id}/members` | Assign a project member, admin only |
 | POST | `/api/projects/{id}/tasks:batch` | Idempotent task import, admin only |
+| POST | `/api/projects/{id}/decisions:history` | Idempotent historical-decision migration, admin only |
 | POST | `/api/tasks/claim-next?projectId={id}` | Atomically lease one task |
 | POST | `/api/tasks/{id}/heartbeat` | Renew current user's lease |
 | POST | `/api/tasks/{id}/decision` | Submit constrained decision and expected version |
 | GET | `/api/tasks/{id}/visual` | Read an authorized real review image |
 | GET | `/api/projects/{id}/audit` | Read project audit trail, admin/auditor |
 
-## 11. Interview walkthrough / 面试讲解顺序
+## 11. Reproduce documentation screenshots / 重建文档截图
+
+The screenshot tool uses Chrome DevTools directly and adds no browser-automation dependency to the application. Credentials are supplied only through process environment variables; the script waits for animations and images, captures four pages, and releases the temporary claimed task.
+
+截图脚本直接调用 Chrome DevTools，不给业务项目增加浏览器自动化依赖。账号密码只通过当前进程环境变量传入；脚本会等待动画和图片稳定，拍摄四个页面，并释放临时领取的任务。
+
+```powershell
+$env:LABEL_REVIEW_CAPTURE_USERNAME = "admin"
+$env:LABEL_REVIEW_CAPTURE_PASSWORD = "<admin-password>"
+$env:LABEL_REVIEW_CAPTURE_URL = "http://127.0.0.1:8088"
+node platform\tools\capture_platform_screenshots.mjs docs\assets
+```
+
+## 12. Interview walkthrough / 面试讲解顺序
 
 1. Start from the data problem: incomplete labels make true objects become false background supervision.
 2. Explain why offline inference and online review are separated: GPU jobs are expensive and bursty; human review is concurrent and stateful.
 3. Draw the claim transaction and lease timeline; emphasize pessimistic locking for allocation and optimistic locking for stale clients.
 4. Explain dual authorization: RBAC handles capability while project membership handles data scope.
 5. Show bounded idempotent import and read-only visual mounts as memory-safety and data-safety decisions.
-6. Close with evidence: production queue scale, real grouped images, automated Java/Python tests and reproducible Docker deployment.
+6. Close with evidence: `30,183` imported candidates, `4,465` migrated decisions, two-account concurrent validation, real screenshots, automated Java/Python tests and two reproducible deployment modes.
 
-## 12. Production hardening / 生产加固
+## 13. Production hardening / 生产加固
 
 Before exposing the service beyond a trusted LAN, terminate TLS at a reverse proxy, rotate JWT/database secrets, disable bootstrap admin after first setup, back up MySQL, centralize logs and metrics, and define account disable/password-reset procedures. Docker Compose is an auditable single-host baseline; Kubernetes or managed databases are deployment choices, not prerequisites for the core workflow.

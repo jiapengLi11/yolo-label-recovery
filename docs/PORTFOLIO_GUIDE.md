@@ -20,6 +20,7 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 | Reliability | `state.json` and idempotent writes | Batch commit boundary and crash replay semantics |
 | MLOps | `doctor` and `manifest.json` | Reproducing CUDA, package and configuration state |
 | Human-in-the-loop ML | AUTO/REVIEW/IGNORE routing | Precision-first thresholds and audit evidence |
+| Backend and concurrency | Spring Boot collaboration platform | Pessimistic task allocation, renewable leases, optimistic versions, JWT/RBAC and project isolation |
 | Evaluation and policy | `calibrate` command | Turning reviewed outcomes into precision/recall-constrained class policies |
 | Ensemble policy | `consensus` command | Independent evidence, one-to-one matching and coverage/risk tradeoffs |
 | Scalable similarity search | `cluster` command | Perceptual hashes, BK-tree radius search and conservative collision guards |
@@ -38,6 +39,7 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 7. Open `examples/near_duplicates/output/near_duplicate_report.html` to show review compression and split leakage.
 8. Open `examples/prioritization/output/prioritization_report.html` to show a limited-budget six-class review queue.
 9. Run `yolo-label-recovery doctor` to show environment diagnostics.
+10. Open `docs/assets/platform-dashboard.png` and `docs/assets/platform-review.png` to explain the validated two-account web workflow without requiring a live server.
 
 This demonstration works without a GPU or private model weights. A full teacher scan remains an optional second demonstration when suitable public weights and data are available.
 

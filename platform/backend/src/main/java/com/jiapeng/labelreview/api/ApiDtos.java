@@ -75,6 +75,20 @@ public final class ApiDtos {
     public record ImportResult(int received, int created, int skippedExisting) {
     }
 
+    public record HistoricalDecisionImportRequest(
+            @NotBlank @Size(max = 80) String candidateId,
+            @NotNull DecisionType decision,
+            @Size(max = 1000) String comment) {
+    }
+
+    public record HistoricalDecisionImportResult(
+            int received,
+            int imported,
+            int skippedExisting,
+            int unknownCandidates,
+            int invalidDecisions) {
+    }
+
     public record TaskView(
             Long id,
             long version,

@@ -39,6 +39,11 @@ public interface TaskRepository extends JpaRepository<ReviewTask, Long> {
             @Param("projectId") Long projectId,
             @Param("candidateIds") Collection<String> candidateIds);
 
+    @Query("select t from ReviewTask t where t.project.id = :projectId and t.candidateId in :candidateIds")
+    List<ReviewTask> findByProjectIdAndCandidateIds(
+            @Param("projectId") Long projectId,
+            @Param("candidateIds") Collection<String> candidateIds);
+
     Optional<ReviewTask> findFirstByClaimedByUsernameAndStateOrderByUpdatedAtDesc(String username, TaskState state);
 
     long countByProjectId(Long projectId);

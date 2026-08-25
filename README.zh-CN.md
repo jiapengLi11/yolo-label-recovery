@@ -84,14 +84,14 @@
 
 当便携式桌面审核器无法满足多人并行工作时，可以启用仓库内的 Web 协作平台。Vue 3 + TypeScript 前端连接 Spring Boot 4 REST API，使用 MySQL + Flyway 持久化；JWT 登录、`ADMIN / REVIEWER / AUDITOR` 角色、项目成员隔离、悲观锁原子领任务、可续租心跳、乐观版本号和不可变审计事件共同防止重复审核与旧页面覆盖。Python 桥接脚本会把现有 `review_queue.csv` 以有界、幂等批次流式导入。
 
-![真实 GT/AUTO 审核图驱动的多人协作工作台](docs/assets/platform-review-workspace.png)
+![真实多人审核进度看板](docs/assets/platform-dashboard.png)
 
 <p>
-  <img src="docs/assets/platform-login.png" width="49%" alt="支持角色权限的登录界面">
-  <img src="docs/assets/platform-admin-console.png" width="49%" alt="管理员账号创建与项目成员分配界面">
+  <img src="docs/assets/platform-review.png" width="49%" alt="真实联合场景 Web 审核工作台">
+  <img src="docs/assets/platform-admin.png" width="49%" alt="审核账号与项目分配面板">
 </p>
 
-以上均为 Vue + Spring Boot 应用连接本地演示协作数据后的真实运行截图，不是设计示意图。工作台同时展示已领取任务、真实审核图、类别置信度、受约束决策按钮和项目实时进度；管理员界面展示账号创建与项目成员分配能力。
+以上均为 Vue + Spring Boot 应用的真实运行截图，不是设计示意图。工作台同时展示已领取任务、真实审核图、类别置信度、受约束决策按钮和项目实时进度；管理员界面展示账号创建与项目成员分配能力。
 
 ```mermaid
 flowchart LR
@@ -101,7 +101,9 @@ flowchart LR
     A --> R["只读审核图目录"]
 ```
 
-部署命令、接口契约、并发原理和面试讲解见[多人协作平台设计](docs/COLLABORATION_PLATFORM.md)。
+平台已在可信校园网中使用两个独立账号同时领取和审核任务，导入 `30,183` 条候选，并通过幂等接口迁移 `4,465` 条桌面端历史决定；真实审核包始终只读。这证明了任务分配、历史迁移和审计流程可用，但不等同于大规模并发压测或模型精度结论。
+
+真实截图、部署命令、接口契约、并发原理和面试讲解见[多人协作平台设计](docs/COLLABORATION_PLATFORM.md)。
 
 ### 生产规模验证
 

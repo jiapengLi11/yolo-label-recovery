@@ -105,6 +105,53 @@ class ApiWorkflowIntegrationTests {
         assertThat(progress.body()).contains("\"completed\":1").contains("\"completionRate\":1.0");
     }
 
+    @Test
+    void importsHistoricalDecisionsIdempotently() throws Exception {
+        String adminToken = login(adminUsername, "IntegrationPass123!");
+        HttpResponse<String> project = post(
+                "/api/projects",
+                adminToken,
+                "{\"name\":\"History import\",\"description\":\"migration\",\"reviewRoot\":\""
+                        + escape(reviewRoot.toString()) + "\"}");
+        long projectId = number(project.body(), "id");
+
+        String tasks = "["
+                + "{\"candidateId\":\"R-HISTORY-1\",\"split\":\"train\",\"imageName\":\"one.jpg\","
+                + "\"className\":\"helmet\",\"confidence\":0.92,\"caseCode\":\"GT0_AUTO1\","
+                + "\"recommendedAction\":\"accept_add_or_reject\",\"visualFile\":\"visuals/one.jpg\"},"
+                + "{\"candidateId\":\"R-HISTORY-2\",\"split\":\"train\",\"imageName\":\"two.jpg\","
+                + "\"className\":\"person\",\"confidence\":0.75,\"caseCode\":\"GT1_AUTO1\","
+                + "\"recommendedAction\":\"replace_or_reject\",\"visualFile\":\"visuals/two.jpg\"}"
+                + "]";
+        assertThat(post("/api/projects/" + projectId + "/tasks:batch", adminToken, tasks).statusCode())
+                .isEqualTo(200);
+
+        String history = "["
+                + "{\"candidateId\":\"R-HISTORY-1\",\"decision\":\"ACCEPT_ADD\",\"comment\":\"legacy\"},"
+                + "{\"candidateId\":\"R-HISTORY-2\",\"decision\":\"UNCERTAIN\",\"comment\":\"legacy\"},"
+                + "{\"candidateId\":\"R-UNKNOWN\",\"decision\":\"REJECT\",\"comment\":\"legacy\"}"
+                + "]";
+        HttpResponse<String> first = post(
+                "/api/projects/" + projectId + "/decisions:history",
+                adminToken,
+                history);
+        assertThat(first.statusCode()).isEqualTo(200);
+        assertThat(first.body()).contains("\"imported\":2").contains("\"unknownCandidates\":1");
+
+        HttpResponse<String> second = post(
+                "/api/projects/" + projectId + "/decisions:history",
+                adminToken,
+                history);
+        assertThat(second.statusCode()).isEqualTo(200);
+        assertThat(second.body()).contains("\"imported\":0").contains("\"skippedExisting\":2");
+
+        HttpResponse<String> progress = get("/api/projects/" + projectId + "/progress", adminToken);
+        assertThat(progress.body())
+                .contains("\"completed\":1")
+                .contains("\"escalated\":1")
+                .contains("\"completionRate\":1.0");
+    }
+
     private String login(String username, String password) throws Exception {
         HttpResponse<String> response = post(
                 "/api/auth/login",

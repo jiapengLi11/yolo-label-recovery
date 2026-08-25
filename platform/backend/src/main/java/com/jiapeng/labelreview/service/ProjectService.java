@@ -2,16 +2,21 @@ package com.jiapeng.labelreview.service;
 
 import com.jiapeng.labelreview.api.ApiDtos.CreateProjectRequest;
 import com.jiapeng.labelreview.api.ApiDtos.ImportResult;
+import com.jiapeng.labelreview.api.ApiDtos.HistoricalDecisionImportRequest;
+import com.jiapeng.labelreview.api.ApiDtos.HistoricalDecisionImportResult;
 import com.jiapeng.labelreview.api.ApiDtos.ProgressView;
 import com.jiapeng.labelreview.api.ApiDtos.ProjectMemberView;
 import com.jiapeng.labelreview.api.ApiDtos.ProjectView;
 import com.jiapeng.labelreview.api.ApiDtos.TaskImportRequest;
 import com.jiapeng.labelreview.domain.AppUser;
+import com.jiapeng.labelreview.domain.DecisionType;
 import com.jiapeng.labelreview.domain.ProjectMember;
+import com.jiapeng.labelreview.domain.ReviewDecision;
 import com.jiapeng.labelreview.domain.ReviewProject;
 import com.jiapeng.labelreview.domain.ReviewTask;
 import com.jiapeng.labelreview.domain.TaskState;
 import com.jiapeng.labelreview.domain.UserRole;
+import com.jiapeng.labelreview.repository.DecisionRepository;
 import com.jiapeng.labelreview.repository.ProjectMemberRepository;
 import com.jiapeng.labelreview.repository.ProjectRepository;
 import com.jiapeng.labelreview.repository.TaskRepository;
@@ -22,10 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
@@ -36,6 +45,7 @@ public class ProjectService {
     private final ProjectMemberRepository members;
     private final UserRepository users;
     private final TaskRepository tasks;
+    private final DecisionRepository decisions;
     private final AuditService audit;
 
     public ProjectService(
@@ -43,11 +53,13 @@ public class ProjectService {
             ProjectMemberRepository members,
             UserRepository users,
             TaskRepository tasks,
+            DecisionRepository decisions,
             AuditService audit) {
         this.projects = projects;
         this.members = members;
         this.users = users;
         this.tasks = tasks;
+        this.decisions = decisions;
         this.audit = audit;
     }
 
@@ -134,6 +146,69 @@ public class ProjectService {
                 projectId,
                 "received=" + rows.size() + ",created=" + additions.size());
         return new ImportResult(rows.size(), additions.size(), existing.size());
+    }
+
+    @Transactional
+    public HistoricalDecisionImportResult importHistoricalDecisions(
+            Long projectId,
+            List<HistoricalDecisionImportRequest> rows,
+            AppUser actor) {
+        if (rows.isEmpty() || rows.size() > MAX_IMPORT_BATCH) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Each import batch must contain between 1 and " + MAX_IMPORT_BATCH + " decisions");
+        }
+        requireProject(projectId);
+        Set<String> candidateIds = new HashSet<>();
+        for (HistoricalDecisionImportRequest row : rows) {
+            if (!candidateIds.add(row.candidateId())) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Duplicate candidate in decision import batch: " + row.candidateId());
+            }
+        }
+
+        Map<String, ReviewTask> taskByCandidate = tasks.findByProjectIdAndCandidateIds(projectId, candidateIds).stream()
+                .collect(Collectors.toMap(ReviewTask::getCandidateId, Function.identity()));
+        Set<Long> existingTaskIds = new HashSet<>(
+                decisions.findTaskIdsByProjectAndCandidateIds(projectId, candidateIds));
+        List<ReviewDecision> additions = new ArrayList<>();
+        int unknown = 0;
+        int skipped = 0;
+        int invalid = 0;
+
+        for (HistoricalDecisionImportRequest row : rows) {
+            ReviewTask task = taskByCandidate.get(row.candidateId());
+            if (task == null) {
+                unknown++;
+                continue;
+            }
+            if (existingTaskIds.contains(task.getId())) {
+                skipped++;
+                continue;
+            }
+            if (!DecisionPolicy.isAllowed(task.getRecommendedAction(), row.decision())) {
+                invalid++;
+                continue;
+            }
+            String comment = row.comment() == null ? "" : row.comment().trim();
+            additions.add(new ReviewDecision(task, actor, row.decision(), comment));
+            task.complete(row.decision() == DecisionType.UNCERTAIN);
+        }
+
+        decisions.saveAll(additions);
+        tasks.flush();
+        audit.record(
+                actor.getUsername(),
+                "HISTORICAL_DECISIONS_IMPORTED",
+                "PROJECT",
+                projectId,
+                "received=" + rows.size()
+                        + ",imported=" + additions.size()
+                        + ",skipped=" + skipped
+                        + ",unknown=" + unknown
+                        + ",invalid=" + invalid);
+        return new HistoricalDecisionImportResult(rows.size(), additions.size(), skipped, unknown, invalid);
     }
 
     @Transactional(readOnly = true)

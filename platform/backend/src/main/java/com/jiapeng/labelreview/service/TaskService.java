@@ -22,18 +22,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class TaskService {
-
-    private static final Map<String, Set<DecisionType>> ALLOWED = Map.of(
-            "accept_add_or_reject", Set.of(DecisionType.ACCEPT_ADD, DecisionType.REJECT, DecisionType.UNCERTAIN),
-            "add_or_reject", Set.of(DecisionType.ACCEPT_ADD, DecisionType.REJECT, DecisionType.UNCERTAIN),
-            "replace_or_reject", Set.of(DecisionType.ACCEPT_REPLACE_GT, DecisionType.REJECT, DecisionType.UNCERTAIN),
-            "accept_eval_or_reject", Set.of(DecisionType.ACCEPT_EVAL_LABEL, DecisionType.REJECT, DecisionType.UNCERTAIN));
 
     private final TaskRepository tasks;
     private final DecisionRepository decisions;
@@ -111,10 +103,7 @@ public class TaskService {
         if (!request.expectedVersion().equals(task.getVersion())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Task changed; refresh before deciding");
         }
-        Set<DecisionType> allowed = ALLOWED.getOrDefault(
-                task.getRecommendedAction(),
-                Set.of(DecisionType.REJECT, DecisionType.UNCERTAIN));
-        if (!allowed.contains(request.decision())) {
+        if (!DecisionPolicy.isAllowed(task.getRecommendedAction(), request.decision())) {
             throw new ResponseStatusException(
                     HttpStatus.UNPROCESSABLE_ENTITY,
                     "Decision " + request.decision() + " is not allowed for " + task.getRecommendedAction());

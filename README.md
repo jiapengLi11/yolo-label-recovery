@@ -84,14 +84,14 @@ See [Grouped Review Application](docs/GROUPED_REVIEW_APP.md) for the queue contr
 
 The repository now includes a deployable web platform for teams that outgrow the portable desktop reviewer. A Vue 3 + TypeScript client talks to a Spring Boot 4 REST API backed by MySQL and Flyway. JWT authentication, `ADMIN / REVIEWER / AUDITOR` RBAC, project membership, pessimistic task claiming, renewable leases, optimistic versions and immutable audit events prevent duplicate work and stale decisions. The Python bridge streams the existing `review_queue.csv` into the API in bounded, idempotent batches.
 
-![Running multi-user review workspace with a real GT/AUTO review image](docs/assets/platform-review-workspace.png)
+![Real multi-user review dashboard](docs/assets/platform-dashboard.png)
 
 <p>
-  <img src="docs/assets/platform-login.png" width="49%" alt="Role-aware login screen">
-  <img src="docs/assets/platform-admin-console.png" width="49%" alt="Administrator account and project-member management">
+  <img src="docs/assets/platform-review.png" width="49%" alt="Real joint-scene web review workspace">
+  <img src="docs/assets/platform-admin.png" width="49%" alt="Reviewer account and project assignment panel">
 </p>
 
-These are captures of the actual Vue + Spring Boot application running against seeded local collaboration data, not design mockups. The workspace shows a claimed task, real review visual, class confidence, constrained decisions and live project progress; the admin view demonstrates account creation and project membership assignment.
+These are captures of the actual Vue + Spring Boot application, not design mockups. The workspace shows a claimed task, real review visual, class confidence, constrained decisions and live project progress; the admin view demonstrates account creation and project membership assignment.
 
 ```mermaid
 flowchart LR
@@ -101,7 +101,9 @@ flowchart LR
     A --> R["Read-only review visuals"]
 ```
 
-See [Collaboration Platform](docs/COLLABORATION_PLATFORM.md) for deployment, API contracts, concurrency design and interview walkthrough.
+The workflow has been validated on a trusted campus LAN with two independent reviewer accounts working concurrently. It imported `30,183` tasks and migrated `4,465` historical desktop decisions through an idempotent endpoint while keeping the real review package read-only. This verifies the allocation, migration and audit workflow; it is not a large-scale load-test or model-accuracy claim.
+
+See [Collaboration Platform](docs/COLLABORATION_PLATFORM.md) for screenshots, deployment, API contracts, concurrency design and interview walkthrough.
 
 ### Production-scale validation
 

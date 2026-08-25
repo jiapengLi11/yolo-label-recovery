@@ -3,6 +3,8 @@ package com.jiapeng.labelreview.api;
 import com.jiapeng.labelreview.api.ApiDtos.AuditView;
 import com.jiapeng.labelreview.api.ApiDtos.CreateProjectRequest;
 import com.jiapeng.labelreview.api.ApiDtos.ImportResult;
+import com.jiapeng.labelreview.api.ApiDtos.HistoricalDecisionImportRequest;
+import com.jiapeng.labelreview.api.ApiDtos.HistoricalDecisionImportResult;
 import com.jiapeng.labelreview.api.ApiDtos.ProgressView;
 import com.jiapeng.labelreview.api.ApiDtos.ProjectMemberRequest;
 import com.jiapeng.labelreview.api.ApiDtos.ProjectMemberView;
@@ -59,6 +61,15 @@ public class ProjectController {
             Authentication authentication) {
         AppUser actor = currentUsers.require(authentication);
         return projects.importTasks(projectId, rows, actor);
+    }
+
+    @PostMapping("/{projectId}/decisions:history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public HistoricalDecisionImportResult importHistoricalDecisions(
+            @PathVariable Long projectId,
+            @Size(min = 1, max = 500) @RequestBody List<@Valid HistoricalDecisionImportRequest> rows,
+            Authentication authentication) {
+        return projects.importHistoricalDecisions(projectId, rows, currentUsers.require(authentication));
     }
 
     @GetMapping("/{projectId}/progress")

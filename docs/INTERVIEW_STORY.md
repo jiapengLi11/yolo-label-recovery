@@ -12,6 +12,8 @@ Long scans are checkpointed after every committed batch. Resume validates a run 
 
 Production review showed that confidence and IoU alone were not enough for automatic writes. I added an exhaustive GT/AUTO gate using IoU, IoS, normalized center distance and area ratio, then separated model evidence, company review and safe apply into three auditable stages. The apply stage blocks unfinished decisions, detects source-label drift and creates a new dataset without changing the original.
 
+When review moved from one person to a team, I added a Vue and Spring Boot collaboration layer rather than forcing concurrent reviewers to exchange CSV files. MySQL row locks allocate different tasks atomically, renewable leases recover abandoned work, optimistic versions reject stale pages, and project membership separates data scope from global roles. In a trusted-LAN validation, two independent accounts reviewed concurrently while `30,183` tasks and `4,465` migrated desktop decisions remained auditable and idempotent.
+
 ## Strong technical points
 
 - `6 x N` inference work is accepted as the cost of specialist evidence; peak memory is controlled independently.
@@ -26,6 +28,7 @@ Production review showed that confidence and IoU alone were not enough for autom
 - `doctor` and `manifest.json` make environment differences visible instead of leaving CUDA and dependency drift implicit.
 - GT/AUTO review makes the authority boundary explicit: models propose evidence, humans authorize label changes.
 - Same-target box disagreement is replaced transactionally rather than adding two contradictory boxes.
+- The collaboration platform separates offline GPU evidence generation from online stateful review, and validates concurrency with real accounts instead of claiming correctness from UI screenshots alone.
 
 ## Honest limitation
 
