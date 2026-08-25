@@ -84,6 +84,8 @@ See [Grouped Review Application](docs/GROUPED_REVIEW_APP.md) for the queue contr
 
 The repository now includes a deployable web platform for teams that outgrow the portable desktop reviewer. A Vue 3 + TypeScript client talks to a Spring Boot 4 REST API backed by MySQL and Flyway. JWT authentication, `ADMIN / REVIEWER / AUDITOR` RBAC, project membership, pessimistic task claiming, renewable leases, optimistic versions and immutable audit events prevent duplicate work and stale decisions. The Python bridge streams the existing `review_queue.csv` into the API in bounded, idempotent batches.
 
+![Real role-aware login entry](docs/assets/platform-login.png)
+
 ![Real multi-user review dashboard](docs/assets/platform-dashboard.png)
 
 <p>
@@ -91,7 +93,7 @@ The repository now includes a deployable web platform for teams that outgrow the
   <img src="docs/assets/platform-admin.png" width="49%" alt="Reviewer account and project assignment panel">
 </p>
 
-These are captures of the actual Vue + Spring Boot application, not design mockups. The workspace shows a claimed task, real review visual, class confidence, constrained decisions and live project progress; the admin view demonstrates account creation and project membership assignment.
+These are captures of the actual Vue + Spring Boot application, not design mockups. The login view shows the role-aware entry used by reviewers; the workspace shows a claimed task, real review visual, class confidence, constrained decisions and live project progress; the admin view demonstrates account creation and project membership assignment.
 
 ```mermaid
 flowchart LR

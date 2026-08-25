@@ -84,6 +84,8 @@
 
 当便携式桌面审核器无法满足多人并行工作时，可以启用仓库内的 Web 协作平台。Vue 3 + TypeScript 前端连接 Spring Boot 4 REST API，使用 MySQL + Flyway 持久化；JWT 登录、`ADMIN / REVIEWER / AUDITOR` 角色、项目成员隔离、悲观锁原子领任务、可续租心跳、乐观版本号和不可变审计事件共同防止重复审核与旧页面覆盖。Python 桥接脚本会把现有 `review_queue.csv` 以有界、幂等批次流式导入。
 
+![真实角色登录入口](docs/assets/platform-login.png)
+
 ![真实多人审核进度看板](docs/assets/platform-dashboard.png)
 
 <p>
@@ -91,7 +93,7 @@
   <img src="docs/assets/platform-admin.png" width="49%" alt="审核账号与项目分配面板">
 </p>
 
-以上均为 Vue + Spring Boot 应用的真实运行截图，不是设计示意图。工作台同时展示已领取任务、真实审核图、类别置信度、受约束决策按钮和项目实时进度；管理员界面展示账号创建与项目成员分配能力。
+以上均为 Vue + Spring Boot 应用的真实运行截图，不是设计示意图。登录页展示审核人员实际使用的角色入口；工作台同时展示已领取任务、真实审核图、类别置信度、受约束决策按钮和项目实时进度；管理员界面展示账号创建与项目成员分配能力。
 
 ```mermaid
 flowchart LR
