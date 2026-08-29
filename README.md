@@ -1,5 +1,7 @@
 # YOLO Label Recovery
 
+> Chinese engineering case study: [From incomplete labels to a mining-safety AI feedback loop](docs/MINING_SAFETY_AI_ENGINEERING_BLOG.zh-CN.md)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 [![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)

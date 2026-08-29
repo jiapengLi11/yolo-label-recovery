@@ -1,5 +1,7 @@
 # YOLO Label Recovery
 
+> 深度项目复盘：[从漏标数据到矿区智能安全闭环](docs/MINING_SAFETY_AI_ENGINEERING_BLOG.zh-CN.md)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 [![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)

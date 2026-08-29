@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f8f7"/><stop offset="1" stop-color="#e8f1f3"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#17324d" flood-opacity=".14"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#159a9c"/></marker>
+  </defs>
+  <rect width="1400" height="900" rx="28" fill="url(#bg)"/>
+  <text x="70" y="72" font-family="Microsoft YaHei, sans-serif" font-size="34" font-weight="700" fill="#17324d">矿区智能安全监控：在线处置 + 离线模型闭环</text>
+  <text x="70" y="112" font-family="Microsoft YaHei, sans-serif" font-size="17" fill="#5e6c78">模型输出不是告警，Teacher 预测也不是真值；两条链路都需要规则、审核和证据。</text>
+  <g filter="url(#shadow)" font-family="Microsoft YaHei, sans-serif">
+    <rect x="70" y="170" width="250" height="135" rx="18" fill="#eaf2f6" stroke="#1f6f8b" stroke-width="2"/>
+    <text x="195" y="213" text-anchor="middle" font-size="23" font-weight="700" fill="#17324d">20 路摄像头</text>
+    <text x="195" y="252" text-anchor="middle" font-size="16" fill="#5e6c78">RTSP · 抽帧 · 重连</text>
+    <text x="195" y="279" text-anchor="middle" font-size="16" fill="#5e6c78">device_id · frame_id</text>
+    <rect x="410" y="170" width="250" height="135" rx="18" fill="#eff5f5" stroke="#159a9c" stroke-width="2"/>
+    <text x="535" y="213" text-anchor="middle" font-size="23" font-weight="700" fill="#17324d">GPU 推理</text>
+    <text x="535" y="252" text-anchor="middle" font-size="16" fill="#5e6c78">有界队列 · 动态 Batch</text>
+    <text x="535" y="279" text-anchor="middle" font-size="16" fill="#5e6c78">FP16 · 最新帧优先</text>
+    <rect x="750" y="170" width="250" height="135" rx="18" fill="#fff5da" stroke="#d99b30" stroke-width="2"/>
+    <text x="875" y="213" text-anchor="middle" font-size="23" font-weight="700" fill="#17324d">事件引擎</text>
+    <text x="875" y="252" text-anchor="middle" font-size="16" fill="#5e6c78">空间关联 · 滑动窗口</text>
+    <text x="875" y="279" text-anchor="middle" font-size="16" fill="#5e6c78">迟滞 · 冷却 · 去重</text>
+    <rect x="1090" y="170" width="240" height="135" rx="18" fill="#eaf2f6" stroke="#1f6f8b" stroke-width="2"/>
+    <text x="1210" y="213" text-anchor="middle" font-size="23" font-weight="700" fill="#17324d">告警与工单</text>
+    <text x="1210" y="252" text-anchor="middle" font-size="16" fill="#5e6c78">风险分级 · 状态机</text>
+    <text x="1210" y="279" text-anchor="middle" font-size="16" fill="#5e6c78">处置证据 · 审计</text>
+    <rect x="750" y="410" width="580" height="145" rx="18" fill="#10212b" stroke="#159a9c" stroke-width="2"/>
+    <text x="1040" y="453" text-anchor="middle" font-size="23" font-weight="700" fill="#ffffff">RAG + Agent</text>
+    <text x="1040" y="490" text-anchor="middle" font-size="16" fill="#dce9eb">混合检索 · 规程原文 · 风险-证据控制</text>
+    <text x="1040" y="519" text-anchor="middle" font-size="16" fill="#dce9eb">Function Calling · 权限校验 · 人工审批</text>
+    <rect x="70" y="650" width="1260" height="160" rx="22" fill="#ffffff" stroke="#159a9c" stroke-width="3"/>
+    <text x="700" y="694" text-anchor="middle" font-size="25" font-weight="700" fill="#17324d">数据与模型持续迭代闭环</text>
+    <text x="700" y="735" text-anchor="middle" font-size="17" fill="#5e6c78">困难样本回流 → 六个单类别 Teacher → GT/AUTO 几何关系 → 多人审核 → 派生数据集</text>
+    <text x="700" y="773" text-anchor="middle" font-size="17" fill="#5e6c78">固定测试集 + 联合场景评估 → 模型注册与部署</text>
+  </g>
+  <g fill="none" stroke="#159a9c" stroke-width="4" marker-end="url(#arrow)">
+    <path d="M320 238 H400"/><path d="M660 238 H740"/><path d="M1000 238 H1080"/>
+    <path d="M1210 305 V400"/><path d="M1040 555 V638"/>
+    <path d="M760 650 C620 590 450 540 310 315" stroke-dasharray="10 8"/>
+  </g>
+  <text x="410" y="602" font-family="Microsoft YaHei, sans-serif" font-size="15" fill="#5e6c78">误报、漏报、低置信与联合场景样本回流</text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700">
+  <defs><marker id="a" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1f6f8b"/></marker></defs>
+  <rect width="1400" height="700" rx="26" fill="#f7fafb"/>
+  <text x="60" y="70" font-family="Microsoft YaHei, sans-serif" font-size="34" font-weight="700" fill="#17324d">从不完整标签到可训练数据：证据链而非自动改写</text>
+  <g font-family="Microsoft YaHei, sans-serif">
+    <g><circle cx="115" cy="220" r="52" fill="#fcebec" stroke="#c94a57" stroke-width="3"/><text x="115" y="228" text-anchor="middle" font-size="26" font-weight="700" fill="#17324d">01</text><text x="115" y="306" text-anchor="middle" font-size="19" font-weight="700" fill="#17324d">只读源数据</text></g>
+    <g><circle cx="345" cy="220" r="52" fill="#eaf2f6" stroke="#1f6f8b" stroke-width="3"/><text x="345" y="228" text-anchor="middle" font-size="26" font-weight="700" fill="#17324d">02</text><text x="345" y="306" text-anchor="middle" font-size="19" font-weight="700" fill="#17324d">Teacher 扫描</text></g>
+    <g><circle cx="575" cy="220" r="52" fill="#eff5f5" stroke="#159a9c" stroke-width="3"/><text x="575" y="228" text-anchor="middle" font-size="26" font-weight="700" fill="#17324d">03</text><text x="575" y="306" text-anchor="middle" font-size="19" font-weight="700" fill="#17324d">关系分类</text></g>
+    <g><circle cx="805" cy="220" r="52" fill="#fff5da" stroke="#d99b30" stroke-width="3"/><text x="805" y="228" text-anchor="middle" font-size="26" font-weight="700" fill="#17324d">04</text><text x="805" y="306" text-anchor="middle" font-size="19" font-weight="700" fill="#17324d">多人审核</text></g>
+    <g><circle cx="1035" cy="220" r="52" fill="#eaf2f6" stroke="#1f6f8b" stroke-width="3"/><text x="1035" y="228" text-anchor="middle" font-size="26" font-weight="700" fill="#17324d">05</text><text x="1035" y="306" text-anchor="middle" font-size="19" font-weight="700" fill="#17324d">安全写回</text></g>
+    <g><circle cx="1265" cy="220" r="52" fill="#eff5f5" stroke="#159a9c" stroke-width="3"/><text x="1265" y="228" text-anchor="middle" font-size="26" font-weight="700" fill="#17324d">06</text><text x="1265" y="306" text-anchor="middle" font-size="19" font-weight="700" fill="#17324d">固定评测</text></g>
+    <g fill="none" stroke="#1f6f8b" stroke-width="4" marker-end="url(#a)"><path d="M170 220 H283"/><path d="M400 220 H513"/><path d="M630 220 H743"/><path d="M860 220 H973"/><path d="M1090 220 H1203"/></g>
+    <rect x="70" y="405" width="1260" height="190" rx="18" fill="#10212b"/>
+    <text x="100" y="452" font-size="22" font-weight="700" fill="#ffffff">贯穿全流程的八个不变量</text>
+    <text x="100" y="500" font-size="17" fill="#dce9eb">源数据不改写 · Teacher 只提供证据 · candidate_id 稳定 · 所有候选带模型与策略版本</text>
+    <text x="100" y="540" font-size="17" fill="#dce9eb">任务原子领取 · 决定可追溯 · 写回前重复校验 · 效果必须由固定测试集证明</text>
+    <text x="100" y="578" font-size="15" fill="#8fb9c1">已验证证据：30,183 个任务导入，4,465 条历史决定迁移，双账号校园网并发审核。</text>
+  </g>
+</svg>

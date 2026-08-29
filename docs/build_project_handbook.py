@@ -608,6 +608,46 @@ def create_diagrams():
         d.text((x, y), "• " + text_value, font=pil_font(19, idx < 4), fill="#" + INK)
     img.save(ASSETS / "end-to-end-lifecycle.png", quality=95)
 
+    img = Image.new("RGB", (1600, 1120), "#F7FAFB")
+    d = ImageDraw.Draw(img)
+    d.text((70, 40), "矿区智能安全监控系统：在线处置与离线模型闭环", font=pil_font(38, True), fill="#" + NAVY)
+    layers = [
+        ((70, 150, 1530, 290), "设备与边缘层", "20 路 RTSP 摄像头  ·  Jetson / 推理节点  ·  设备心跳与断流重连", PALE_BLUE),
+        ((70, 335, 1530, 475), "视频与推理层", "独立拉流  ·  最新帧槽  ·  有界队列  ·  动态 Batch  ·  frame_id / timestamp 对齐", LIGHT),
+        ((70, 520, 1530, 660), "事件与业务层", "空间关联  ·  滑动窗口  ·  告警去重  ·  风险分级  ·  工单状态机", PALE_GOLD),
+        ((70, 705, 1530, 845), "知识与智能层", "混合检索 RAG  ·  证据约束  ·  Function Calling  ·  人工审批", PALE_BLUE),
+        ((70, 890, 1530, 1030), "数据与模型闭环", "困难样本回流  ·  Multi-Teacher  ·  多人审核  ·  派生数据集  ·  固定测试集评估", LIGHT),
+    ]
+    for item in layers:
+        box(d, *item)
+    for y1, y2 in ((290, 335), (475, 520), (660, 705), (845, 890)):
+        draw_arrow(d, (800, y1), (800, y2), TEAL, 5)
+    img.save(ASSETS / "mining-system-architecture.png", quality=95)
+
+    img = Image.new("RGB", (1600, 900), "#F7FAFB")
+    d = ImageDraw.Draw(img)
+    d.text((70, 40), "20 路视频：从最新帧到可靠告警", font=pil_font(38, True), fill="#" + NAVY)
+    nodes = [
+        ((50, 180, 300, 340), "独立 RTSP 通道", "断流隔离\n指数退避重连", PALE_BLUE),
+        ((370, 180, 620, 340), "最新帧槽", "旧帧可覆盖\n不积压历史画面", LIGHT),
+        ((690, 180, 940, 340), "共享有界队列", "背压与公平调度\n高风险通道升频", PALE_GOLD),
+        ((1010, 180, 1260, 340), "GPU 动态 Batch", "数量/等待双触发\n单模型实例", PALE_BLUE),
+        ((1330, 180, 1570, 340), "检测结果", "device + frame_id\ncaptured_at", LIGHT),
+        ((1010, 560, 1260, 720), "时序事件", "人员空间关联\n20 秒多次命中", PALE_GOLD),
+        ((690, 560, 940, 720), "业务告警", "迟滞 + 冷却\n唯一键去重", PALE_BLUE),
+        ((370, 560, 620, 720), "工单闭环", "分级派发\n处理证据回填", LIGHT),
+        ((50, 560, 300, 720), "困难样本回流", "误报 / 漏报\n进入补标平台", PALE_GOLD),
+    ]
+    for item in nodes:
+        box(d, *item)
+    for start, end in [
+        ((300, 260), (370, 260)), ((620, 260), (690, 260)), ((940, 260), (1010, 260)),
+        ((1260, 260), (1330, 260)), ((1450, 340), (1135, 560)), ((1010, 640), (940, 640)),
+        ((690, 640), (620, 640)), ((370, 640), (300, 640)),
+    ]:
+        draw_arrow(d, start, end)
+    img.save(ASSETS / "rtsp-event-pipeline.png", quality=95)
+
 
 def build_document(output_path: Path = OUT):
     create_diagrams()
@@ -679,6 +719,7 @@ def build_document(output_path: Path = OUT):
         "第五部分：真实部署、迁移与双账号联调复盘（第 24 章）",
         "第六部分：端到端案例推演与知识闭环（第 25 章）",
         "第七部分：用户反馈驱动的审核生产力迭代（第 26 章）",
+        "第八部分：矿区智能监控系统与大厂面试技术篇（第 27-35 章）",
         "附录：API、命令、术语与代码阅读清单",
     ]
     add_numbers(doc, toc)
@@ -1560,6 +1601,137 @@ def build_document(output_path: Path = OUT):
     ], [3400, 2600, 3360])
     add_callout(doc, "面试表达", "这轮迭代不是‘又加了几个按钮’，而是用真实审核反馈重构吞吐与安全的边界：高频路径一键化，低频错误可恢复，后台状态可观察，查询路径有索引，设计取舍有 ADR。", "info")
 
+    chapter(doc, "27", "把子项目讲回完整矿区系统", "从数据治理子系统出发，建立在线监控、业务处置和离线模型迭代的统一架构。")
+    add_picture(doc, ASSETS / "mining-system-architecture.png", 6.65, "图 14  矿区智能安全监控系统双闭环架构", "在线检测与处置链路、离线数据与模型闭环")
+    add_paragraph(doc, "标签恢复平台不是矿区业务的终点，而是模型生命周期中的数据治理子系统。在线链路负责从摄像头产生检测、事件、告警和工单；离线链路负责收集误报、漏报和联合场景困难样本，经过 Teacher 扫描、人工审核、派生数据集和固定测试集评估，再把合格模型部署回线上。")
+    add_table(doc, ["层", "主要职责", "事实来源", "失败时的处理"], [
+        ["设备与视频", "RTSP 拉流、抽帧、断流重连", "设备配置与通道状态", "单通道隔离重连，不拖垮全局"],
+        ["模型与事件", "检测、跟踪、时序聚合", "frame_id、模型版本、原始框", "丢弃过期帧，保留关键证据"],
+        ["告警与工单", "分级、派发、处置、关闭", "MySQL 事务状态", "幂等重试、状态机拒绝非法流转"],
+        ["RAG 与 Agent", "查规程、生成建议、调用工具", "有效规程与工具执行记录", "证据不足拒答，高风险转人工"],
+        ["数据与训练", "补标、审核、训练、评测", "只读源数据与派生版本", "可回滚，不污染原始标签"],
+    ], [1500, 2600, 2600, 2660])
+    add_callout(doc, "实施边界", "本仓库已有充分证据支撑的是 Multi-Teacher、多人审核平台、MySQL 协作控制和安全写回。视频业务、RAG、Agent 与边缘部署必须按真实完成度表述为已实现、原型或架构设计。", "warn")
+
+    chapter(doc, "28", "Spring Boot 业务主干：设备、告警与工单", "用模块化单体、状态机和事务承载确定性业务规则。")
+    add_paragraph(doc, "推荐先采用模块化单体：auth、device、detection、alert、workorder、knowledge、agent、audit 各自保持代码边界，但共享一次部署和本地事务。GPU 推理与视频解码因资源模型不同，可作为首批独立进程。")
+    add_table(doc, ["模块", "核心实体", "关键不变量", "典型接口"], [
+        ["device", "Area、Device", "RTSP 凭据不向前端明文暴露", "启停、状态、采样策略"],
+        ["detection", "DetectionEvent", "每条结果携带设备、帧号、捕获时间和模型版本", "批量接收检测结果"],
+        ["alert", "AlertRule、Alert", "单帧预测不能直接等于业务告警", "确认、驳回、升级"],
+        ["workorder", "WorkOrder、WorkOrderLog", "状态流转受控，历史日志只追加", "接受、完成、升级、时间线"],
+        ["audit", "AuditLog", "关键动作保留操作者、前后状态和时间", "按对象和用户查询"],
+    ], [1600, 2200, 3100, 2460])
+    add_command(doc, """
+    PENDING -> CONFIRMED -> ASSIGNED -> PROCESSING -> RESOLVED -> CLOSED
+                 |                                      |
+                 +-> REJECTED                            +-> ESCALATED
+    """, "状态不是由前端随意传入。Service 根据当前状态、角色、证据和版本号判断目标状态是否合法。")
+    add_callout(doc, "事务边界", "创建工单时锁定告警、检查是否已有工单、写入工单、修改告警状态并追加日志应位于同一事务；数据库 UNIQUE(alert_id) 负责最终幂等兜底。", "tip")
+
+    chapter(doc, "29", "20 路 RTSP、GPU 调度与端到端延迟", "用解耦、有界队列和最新帧优先把有限算力转化为稳定服务。")
+    add_picture(doc, ASSETS / "rtsp-event-pipeline.png", 6.65, "图 15  多路视频推理与时序告警流水线", "最新帧、有界队列、动态 Batch、事件聚合和困难样本回流")
+    add_paragraph(doc, "错误方案是按摄像头串行执行‘拉帧—推理—画框—返回’，或者每路加载一份模型。前者产生头部阻塞，后者造成 CUDA Context 和权重副本膨胀。推荐每路独立拉流，只保留一个最新待处理帧，经共享有界队列进入单 GPU 模型实例。")
+    add_table(doc, ["机制", "解决的问题", "关键选择", "监控指标"], [
+        ["最新帧槽", "历史帧积压导致假实时", "新帧覆盖未处理旧帧", "丢帧率、帧龄"],
+        ["有界队列", "内存无限增长", "满载时丢旧帧或低优先级帧", "队列长度、等待 P95"],
+        ["动态 Batch", "吞吐与等待冲突", "数量到阈值或等待到时立即执行", "平均 Batch、推理 P95"],
+        ["公平调度", "单路摄像头占满队列", "每通道最多一个待处理帧", "各路实际推理 FPS"],
+        ["frame_id 对齐", "旧框画到新视频帧", "结果过期则丢弃或同帧后端画框", "端到端 P95"],
+    ], [1600, 2400, 3100, 2260])
+    add_formula(doc, "容量估算", "需求 FPS = 摄像头路数 × 每路检测 FPS", "20 路每路 2 FPS 需要 40 FPS 推理能力。系统不能长期运行在 100% 利用率，应为疑似事件升频和抖动保留余量。")
+    add_callout(doc, "延迟口径", "模型推理延迟、捕获到推理完成、捕获到前端展示是三个指标。单帧低于 80 ms 不能直接证明 20 路端到端没有延迟。", "warn")
+
+    chapter(doc, "30", "吸烟与拖鞋：从小目标检测到可靠事件", "用空间关联、时序窗口、迟滞和去重抵抗单帧波动。")
+    add_paragraph(doc, "Detection、Track、Event、Alert 必须分开：单帧框是模型输出，轨迹关联同一人员，事件表示一段持续行为，告警是满足业务规则后的持久记录。同一个人连续吸烟 30 秒可以产生几十个框，但只应形成一个事件和一条告警。")
+    add_table(doc, ["阶段", "吸烟示例", "拖鞋示例", "目的"], [
+        ["空间关联", "框位于人员头肩/手口区域", "框位于人员底部/脚部区域", "过滤人体结构不合理误检"],
+        ["轨迹关联", "绑定 person track_id", "绑定 person track_id", "避免把不同人的命中合并"],
+        ["时间窗口", "20 秒内至少 3 次", "多个采样时刻重复出现", "容忍间歇漏检"],
+        ["迟滞", "严格进入、宽松维持、长时间无命中退出", "同理", "防止事件反复开关"],
+        ["去重", "设备+类别+轨迹+时间桶", "同理", "阻止重复告警"],
+    ], [1500, 2900, 2800, 2160])
+    add_formula(doc, "事件评分示例", "S = 0.45H + 0.30C + 0.15T + 0.10G", "H 为窗口命中比例，C 为平均置信度，T 为时间覆盖率，G 为空间关联质量。它是业务评分而非模型概率，必须由现场数据校准。")
+    add_callout(doc, "联合场景排查", "安全帽出现后吸烟消失，不应先归因于类别框重叠。要依次检查输入是否已画框、是否 class-agnostic NMS、640 下目标是否过小、阈值是否过高，以及训练集中安全帽+吸烟联合标注是否完整。", "warn")
+
+    chapter(doc, "31", "RAG 安全知识库：证据先于答案", "把规程版本、混合检索、重排序和风险控制串成可信问答链路。")
+    add_paragraph(doc, "知识入库不是把 PDF 扔进向量库。系统先做文件哈希去重、OCR、页眉页脚清洗、标题层级恢复和条款级语义切片，并保留文档标题、版本、生效状态、章节、条款号和页码。旧版本标记为 INACTIVE，但历史工单仍能访问当时引用的版本。")
+    add_numbers(doc, [
+        "向量检索召回语义相近的规程，BM25 召回精确编号、设备名和专业词。",
+        "使用 RRF 融合两个排序列表，避免直接比较不同量纲的分数。",
+        "Cross-Encoder 对少量候选重排序，最终只把最相关证据交给大模型。",
+        "回答必须返回规程、章节、页码和原文片段，前端可跳回原文核验。",
+        "高风险问题证据不足时拒绝生成具体操作，转人工确认。",
+    ])
+    add_formula(doc, "Reciprocal Rank Fusion", "RRF(d) = Σ 1 / (k + rank_i(d))", "同一知识块在多个召回列表中排名越靠前，融合分数越高；它不要求 BM25 和向量相似度处于同一尺度。")
+    add_table(doc, ["风险", "证据要求", "系统行为"], [
+        ["LOW", "一般制度材料", "可回答并标注来源"],
+        ["MEDIUM", "至少一条有效规程", "生成建议，必要时人工确认"],
+        ["HIGH", "有效规程原文且与场景匹配", "证据不足拒答并升级人工"],
+    ], [1500, 3600, 4260])
+
+    chapter(doc, "32", "Function Calling Agent：大模型负责理解，代码负责安全", "用工具白名单、状态机、幂等和人工审批限制大模型权力。")
+    add_paragraph(doc, "Agent 不直接连接数据库，也不生成 SQL 执行。模型只能从固定工具中选择调用，并提交符合 JSON Schema 的参数；Spring Boot 仍负责认证、授权、参数校验、事务和审计。Prompt 不是安全边界，真正的边界在工具网关和 Service。")
+    add_table(doc, ["工具", "是否有副作用", "服务端必须校验", "失败策略"], [
+        ["query_safety_knowledge", "否", "项目范围、文档状态、风险过滤", "可有限重试"],
+        ["get_device_info", "否", "设备访问权和脱敏字段", "可有限重试"],
+        ["create_work_order", "是", "告警状态、唯一性、权限、负责人", "按幂等键查询结果"],
+        ["escalate_alert", "是", "当前风险、操作者权限和状态流转", "失败转人工"],
+        ["request_human_approval", "是", "审批人范围与有效期", "等待或终止"],
+    ], [2100, 1500, 3700, 2060])
+    add_command(doc, """
+    RECEIVED -> COLLECTING -> RETRIEVING -> ASSESSING
+       -> WAITING_APPROVAL -> DISPATCHING -> MONITORING -> COMPLETED
+    """, "状态机限制当前阶段允许调用的工具；高风险动作不能跳过 WAITING_APPROVAL。")
+    add_paragraph(doc, "每个有副作用的工具调用携带 idempotencyKey = agentRunId + stepId + toolName。网络超时后先查询执行状态，不能盲目再次创建工单。RAG 文档和用户输入都视为不可信内容，文档中的‘忽略系统规则’不得改变工具白名单。")
+
+    chapter(doc, "33", "MySQL：把并发、状态和审计变成约束", "理解表关系、事务隔离、行锁、乐观版本、索引和恢复。")
+    add_paragraph(doc, "MySQL 保存的是需要强一致的业务事实：用户与项目成员、审核任务与决定、设备、告警、工单、Agent 调用和审计记录。图片与视频证据更适合文件系统或对象存储，数据库保存路径、哈希、时间和关联对象。")
+    add_table(doc, ["查询路径", "推荐索引", "支撑的界面/业务"], [
+        ["领取审核任务", "(project_id, state, lease_until, id)", "原子 claim-next"],
+        ["同图候选", "(project_id, split, image_name, id)", "左侧本图所有框"],
+        ["最近审核", "(reviewer_id, decided_at, id)", "误操作修订"],
+        ["设备告警", "(device_id, status, created_at)", "告警列表与时间线"],
+        ["事件幂等", "UNIQUE(device_id, event_key)", "阻止重复告警"],
+    ], [2400, 3900, 3060])
+    add_paragraph(doc, "行锁只存在于领取任务的短事务中，租约跨请求保存业务所有权，@Version 在提交时阻止旧页面覆盖新状态。三者分别保护毫秒级竞争、分钟级占用和提交时并发覆盖，不能相互替代。")
+    add_callout(doc, "数据库面试重点", "会用 EXPLAIN 观察 type、key、rows、filtered 和 Extra；知道深分页应改用 Keyset Pagination；事务内不做模型推理或远程调用；死锁通过统一锁顺序、缩短事务和有限重试处理。", "tip")
+
+    chapter(doc, "34", "Redis、Kafka 与微服务：按瓶颈演进，不堆技术", "说明何时需要中间件，以及如何避免缓存、消息和数据库之间的不一致。")
+    add_table(doc, ["能力", "适合保存/处理", "不应承担", "引入信号"], [
+        ["Redis", "设备心跳、滑动窗口、限流、热点缓存", "审核最终决定等核心事实", "高频短状态压垮数据库"],
+        ["Kafka", "告警通知、统计、证据归档、困难样本回流", "用户必须立即获知结果的领取请求", "多下游异步订阅和明显积压"],
+        ["微服务", "独立扩缩容的视频、推理、知识服务", "尚未稳定的小模块", "团队边界、发布频率和资源模型分化"],
+        ["Kubernetes", "多服务编排、滚动发布、弹性和自愈", "单机演示的复杂度装饰", "已有容器化、监控和多节点需求"],
+    ], [1500, 3100, 3000, 1760])
+    add_paragraph(doc, "数据库与 Kafka 不能直接双写。推荐 Transactional Outbox：同一 MySQL 事务写业务表和 outbox_event，后台发布器再把未发布事件发送到 Kafka。消费者以 event_id 幂等处理，并将业务更新与 consumed_event 记录放在同一事务。")
+    add_command(doc, """
+    阶段 1  模块化单体 + MySQL
+    阶段 2  独立 GPU 推理服务 + 对象存储
+    阶段 3  Redis 承载心跳、窗口和热点状态
+    阶段 4  Kafka 解耦告警、通知和样本回流
+    阶段 5  按扩容与团队边界拆分微服务
+    """, "这是一条演进路线，不是当前仓库已使用技术的清单。")
+
+    chapter(doc, "35", "大厂面试表达：三分钟讲清、三十分钟扛住", "用业务问题、技术取舍、验证证据和诚实边界组织项目故事。")
+    add_callout(doc, "30 秒版本", "我负责矿区视觉模型的数据治理和多人审核平台。针对多来源六类 YOLO 数据中的联合场景漏标，我训练六个单类别 Teacher 全量扫描，用 IoU、IoS、中心距离和面积比例识别疑似漏标，再通过 Spring Boot、MySQL、Vue 多人平台安全审核与回写，形成可追溯的数据闭环。", "info")
+    add_paragraph(doc, "三分钟版本按六段组织：业务问题；为什么漏标会产生错误负监督；Multi-Teacher 与流式资源控制；多人协作与数据库一致性；固定测试集和联合场景验证；已落地能力与下一步边界。不要按 Python、Java、Vue 的技术清单顺序介绍。")
+    add_table(doc, ["追问", "回答主线", "不要踩的坑"], [
+        ["最难的是什么", "先区分模型、数据和部署链路，再定位联合场景漏标", "只说调了学习率和 Batch"],
+        ["为何单类 Teacher", "减少类别竞争、按类校准、专注发现漏标", "说单类模型天然正确"],
+        ["为何高置信仍审核", "域偏移与确认偏差，伪标签会放大错误", "把置信度当真实概率"],
+        ["指标没提升怎么办", "查划分、标签质量、分类别指标和专项场景", "继续盲目加轮次"],
+        ["为何不用 Redis/Kafka", "当前 MySQL 单体满足一致性，按瓶颈演进", "冒充已经使用"],
+        ["如何证明可用", "固定 test、联合场景、双账号并发和可复核产物", "用训练损失或截图代替评测"],
+    ], [2300, 4200, 2860])
+    add_bullets(doc, [
+        "可以确认：30,183 个候选任务导入，4,465 条历史决定迁移，双账号校园网协作已验证。",
+        "不能夸大：当前不应称为高并发生产平台；Redis、Kafka、Kubernetes 是演进方案。",
+        "口径分离：模型单帧延迟不等于 20 路端到端延迟；mAP 不等于事件级告警准确率。",
+        "责任边界：明确自己负责数据治理、模型训练评测和审核平台，其他模块按参与程度陈述。",
+    ])
+    add_callout(doc, "STAR 收束", "Situation：多源六类数据联合场景漏标。Task：降低人工成本且不污染原标签。Action：六 Teacher、几何分流、流式推理、多人审核、事务与审计。Result：形成可运行、可追溯、可继续评测的数据闭环；模型收益仍以固定测试集和现场专项集为准。", "tip")
+
     chapter(doc, "附录 A", "API 速查", "快速定位前后端契约。", new_page=False)
     add_table(doc, ["方法", "路径", "角色", "用途"], [
         ["POST", "/api/auth/login", "公开", "账号密码换 JWT"],
@@ -1657,7 +1829,7 @@ def build_document(output_path: Path = OUT):
     props.title = "YOLO Label Recovery 项目开发学习与大厂面试手册"
     props.subject = "多 Teacher YOLO 漏标恢复与多人审核协作平台"
     props.author = "YOLO Label Recovery Project Team"
-    props.keywords = "YOLO, Multi-Teacher, Spring Boot, Vue, MySQL, JWT, concurrency, interview"
+    props.keywords = "YOLO, Multi-Teacher, Spring Boot, Vue, MySQL, JWT, RTSP, RAG, Agent, concurrency, interview"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(output_path)
     print(output_path)
