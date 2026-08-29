@@ -1,6 +1,6 @@
 # YOLO Label Recovery
 
-> 深度项目复盘：[从漏标数据到矿区智能安全闭环](docs/MINING_SAFETY_AI_ENGINEERING_BLOG.zh-CN.md)
+> 深度项目复盘：[从漏标数据到矿区智能安全闭环](docs/MINING_SAFETY_AI_ENGINEERING_BLOG.zh-CN.md) | [图文 DOCX 版](docs/矿区智能安全监控项目复盘博客_图文版.docx)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 

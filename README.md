@@ -1,6 +1,6 @@
 # YOLO Label Recovery
 
-> Chinese engineering case study: [From incomplete labels to a mining-safety AI feedback loop](docs/MINING_SAFETY_AI_ENGINEERING_BLOG.zh-CN.md)
+> Chinese engineering case study: [From incomplete labels to a mining-safety AI feedback loop](docs/MINING_SAFETY_AI_ENGINEERING_BLOG.zh-CN.md) | [DOCX with embedded figures](docs/矿区智能安全监控项目复盘博客_图文版.docx)
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 

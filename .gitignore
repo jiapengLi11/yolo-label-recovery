@@ -48,6 +48,8 @@ platform/campus-deploy/logs/
 # Generated handbook deliverables and render QA (builder assets stay tracked)
 docs/YOLO_Label_Recovery_项目开发学习与大厂面试手册.docx
 docs/_handbook_qa*/
+docs/_blog_docx_assets/
+docs/_blog_docx_qa*/
 
 # IDE and OS files
 .idea/
