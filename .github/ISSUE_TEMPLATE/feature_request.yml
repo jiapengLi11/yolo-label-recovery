@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a change with a concrete problem, evidence, and acceptance criteria.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Explain the workflow failure or measurable limitation before proposing technology.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe inputs, outputs, failure handling, and backward compatibility.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and acceptance criteria
+      description: State how the change should be tested or measured.
+    validations:
+      required: true

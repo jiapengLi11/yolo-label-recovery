@@ -19,8 +19,9 @@ jobs:
           python -m pip install -e ".[inference,dev]"
       - name: Compile and test
         run: |
-          python -m compileall -q autolabel_with_single_class_models.py yolo_label_recovery tests platform/tools
-          ruff check autolabel_with_single_class_models.py yolo_label_recovery tests examples platform/tools
+          python -m compileall -q autolabel_with_single_class_models.py yolo_label_recovery tests examples scripts platform/tools
+          ruff check autolabel_with_single_class_models.py yolo_label_recovery tests examples scripts platform/tools
+          python scripts/validate_docs.py
           python tests/run_smoke_tests.py
           pytest
       - name: Generate public demo report

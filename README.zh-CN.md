@@ -1,8 +1,8 @@
 # YOLO Label Recovery
 
-> 深度项目复盘：[从漏标数据到矿区智能安全闭环](docs/MINING_SAFETY_AI_ENGINEERING_BLOG.zh-CN.md) | [图文 DOCX 版](docs/矿区智能安全监控项目复盘博客_图文版.docx)
+> 中文优先的工程作品集：[文档总入口](docs/README.zh-CN.md) | [15 分钟公开演示](docs/REPRODUCIBLE_DEMO.zh-CN.md) | [核心代码导读](docs/CODE_WALKTHROUGH.zh-CN.md) | [项目证据与边界](docs/PROJECT_EVIDENCE.zh-CN.md)
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+[简体中文](README.md) | [English](README.en.md) | [完整中文长版](README.zh-CN.md)
 
 [![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jiapengLi11/yolo-label-recovery)](https://github.com/jiapengLi11/yolo-label-recovery/releases)
@@ -14,6 +14,34 @@
 一个安全、可审计、内存友好的多 Teacher YOLO 漏标恢复与人机协同审核平台。
 
 本项目源自工业安全视觉任务。它使用每个类别各自的单类别检测器扫描多类别数据集，发现未被现有标签覆盖的高置信度预测，并将新增标注写入派生标签目录，始终不修改源数据集。
+
+## 给面试官的项目导览
+
+| 时间 | 建议入口 | 能看到什么 |
+|---|---|---|
+| 30 秒 | 本页“核心特性”和真实界面 | 业务问题、技术栈、产品形态 |
+| 5 分钟 | [项目证据与边界](docs/PROJECT_EVIDENCE.zh-CN.md) | 已实现、已验证、规划能力的严格区分 |
+| 15 分钟 | [公开演示与验收](docs/REPRODUCIBLE_DEMO.zh-CN.md) | 无 GPU 可复现的数据审计、审核和安全写回 |
+| 30 分钟 | [核心代码导读](docs/CODE_WALKTHROUGH.zh-CN.md) | Python 流水线、Spring Boot 并发、MySQL 约束与 Vue 状态 |
+| 深入讨论 | [矿区系统设计](docs/MINING_SYSTEM_DESIGN.zh-CN.md) | 20 路 RTSP、事件告警、RAG 和 Agent 的演进边界 |
+
+项目的核心不是“用模型自动生成更多框”，而是建立一条风险可控的证据链：模型只提出候选，规则解释关系，人工授权决策，数据库保证协作一致性，安全写回生成可回滚的数据版本，固定测试集最终判断模型是否真的变好。
+
+![真实多人审核平台](docs/assets/platform-review-productivity.png)
+
+## 一张图看完整链路
+
+```mermaid
+flowchart LR
+    A[只读 YOLO 数据集] --> B[数据审计]
+    B --> C[六个单类别 Teacher 串行扫描]
+    C --> D[候选证据与分类别阈值]
+    D --> E[GT/AUTO 多几何关系]
+    E --> F[桌面或 Web 人工审核]
+    F --> G[安全写回派生数据集]
+    G --> H[固定测试集与联合场景评估]
+    H --> I[部署与困难样本回流]
+```
 
 ## 预生成展示结果
 
@@ -367,6 +395,12 @@ out-root/
 
 延伸阅读：
 
+- [中文文档总入口](docs/README.zh-CN.md)
+- [公开演示与验收指南](docs/REPRODUCIBLE_DEMO.zh-CN.md)
+- [核心代码导读](docs/CODE_WALKTHROUGH.zh-CN.md)
+- [项目证据与表述边界](docs/PROJECT_EVIDENCE.zh-CN.md)
+- [完整矿区系统设计](docs/MINING_SYSTEM_DESIGN.zh-CN.md)
+- [大厂面试高频追问](docs/INTERVIEW_QA.zh-CN.md)
 - [架构与工作流](docs/ARCHITECTURE.md)
 - [内存与显存设计](docs/MEMORY_AND_GPU.md)
 - [数据治理](docs/DATA_GOVERNANCE.md)

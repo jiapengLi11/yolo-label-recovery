@@ -1,12 +1,11 @@
 name: Bug report
-description: Report a reproducible failure without uploading private data or model weights.
+description: Report a reproducible failure in the pipeline or review platform.
 title: "[Bug]: "
-labels:
-  - bug
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
-      value: Do not attach private images, labels, credentials, absolute local paths, or model weights.
+      value: Do not attach private images, model weights, credentials, or unredacted machine paths.
   - type: textarea
     id: summary
     attributes:
@@ -18,27 +17,24 @@ body:
     id: reproduce
     attributes:
       label: Minimal reproduction
-      description: Provide a sanitized command and, when possible, a synthetic fixture.
-      render: shell
-    validations:
-      required: true
-  - type: input
-    id: version
-    attributes:
-      label: Version
-      placeholder: yolo-label-recovery 0.3.0
+      description: Include a redacted command, public fixture, and the smallest relevant log excerpt.
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
       label: Environment
-      description: Python, Ultralytics, PyTorch, CUDA, GPU and operating-system versions.
+      description: Paste redacted output from `yolo-label-recovery doctor --redact-paths` when relevant.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Python pipeline
+        - Desktop reviewer
+        - Spring Boot API
+        - Vue review workspace
+        - Docker or LAN deployment
+        - Documentation
     validations:
       required: true
-  - type: textarea
-    id: logs
-    attributes:
-      label: Sanitized logs
-      description: Remove usernames, machine names, IP addresses and dataset paths.
-      render: text

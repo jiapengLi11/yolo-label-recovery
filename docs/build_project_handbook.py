@@ -1,20 +1,17 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from pathlib import Path
 import argparse
+from pathlib import Path
 from textwrap import dedent
 
-from PIL import Image, ImageDraw, ImageFont
 from docx import Document
-from docx.enum.section import WD_SECTION
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_LINE_SPACING
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
-
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "YOLO_Label_Recovery_项目开发学习与大厂面试手册.docx"
@@ -453,7 +450,7 @@ def draw_arrow(draw: ImageDraw.ImageDraw, start: tuple[int, int], end: tuple[int
 
 def box(draw, xy, title, subtitle, fill, outline=BLUE):
     draw.rounded_rectangle(xy, radius=18, fill="#" + fill, outline="#" + outline, width=3)
-    x1, y1, x2, y2 = xy
+    x1, y1, x2, _ = xy
     tf = pil_font(27, True)
     sf = pil_font(18)
     tb = draw.textbbox((0, 0), title, font=tf)
@@ -512,19 +509,26 @@ def create_diagrams():
         d.text((x - 70, 120), name, font=pil_font(23, True), fill="#" + BLUE)
         d.line((x, 165, x, 820), fill="#" + GRID, width=3)
     y = 230
-    draw_arrow(d, (190, y), (540, y)); d.text((250, y - 34), "claim-next(projectId)", font=pil_font(18), fill="#" + INK)
+    draw_arrow(d, (190, y), (540, y))
+    d.text((250, y - 34), "claim-next(projectId)", font=pil_font(18), fill="#" + INK)
     y += 90
-    draw_arrow(d, (540, y), (880, y)); d.text((610, y - 34), "事务 + 行锁查询", font=pil_font(18), fill="#" + INK)
+    draw_arrow(d, (540, y), (880, y))
+    d.text((610, y - 34), "事务 + 行锁查询", font=pil_font(18), fill="#" + INK)
     y += 90
-    draw_arrow(d, (880, y), (540, y)); d.text((625, y - 34), "返回候选 R001，并锁定", font=pil_font(18), fill="#" + INK)
+    draw_arrow(d, (880, y), (540, y))
+    d.text((625, y - 34), "返回候选 R001，并锁定", font=pil_font(18), fill="#" + INK)
     y += 90
-    draw_arrow(d, (1230, y), (540, y)); d.text((940, y - 34), "几乎同时 claim-next", font=pil_font(18), fill="#" + INK)
+    draw_arrow(d, (1230, y), (540, y))
+    d.text((940, y - 34), "几乎同时 claim-next", font=pil_font(18), fill="#" + INK)
     y += 90
-    draw_arrow(d, (540, y), (880, y)); d.text((620, y - 34), "R001 已 CLAIMED，选择 R002", font=pil_font(18), fill="#" + INK)
+    draw_arrow(d, (540, y), (880, y))
+    d.text((620, y - 34), "R001 已 CLAIMED，选择 R002", font=pil_font(18), fill="#" + INK)
     y += 90
-    draw_arrow(d, (540, y), (190, y)); d.text((235, y - 34), "R001 + version=1 + lease", font=pil_font(18), fill="#" + INK)
+    draw_arrow(d, (540, y), (190, y))
+    d.text((235, y - 34), "R001 + version=1 + lease", font=pil_font(18), fill="#" + INK)
     y += 90
-    draw_arrow(d, (540, y), (1230, y)); d.text((820, y - 34), "R002 + version=1 + lease", font=pil_font(18), fill="#" + INK)
+    draw_arrow(d, (540, y), (1230, y))
+    d.text((820, y - 34), "R002 + version=1 + lease", font=pil_font(18), fill="#" + INK)
     img.save(ASSETS / "claim-sequence.png", quality=95)
 
     img = Image.new("RGB", (1500, 780), "#F7FAFB")
@@ -683,7 +687,7 @@ def build_document(output_path: Path = OUT):
             ["开源仓库", "github.com/jiapengLi11/yolo-label-recovery"],
             ["核心技术", "Python / YOLO / Spring Boot / Spring Security / JPA / MySQL / Vue / TypeScript / Docker / Windows / VMware"],
             ["学习目标", "能从需求、数据、并发、安全、测试和交付六个维度讲清项目"],
-            ["版本基线", "多人审核生产力迭代，深度学习版更新日期 2026-08-29"],
+            ["版本基线", "中文面试作品集与代码学习路线，彻底更新日期 2026-08-30"],
         ],
         [2100, 7260],
     )
@@ -720,7 +724,8 @@ def build_document(output_path: Path = OUT):
         "第六部分：端到端案例推演与知识闭环（第 25 章）",
         "第七部分：用户反馈驱动的审核生产力迭代（第 26 章）",
         "第八部分：矿区智能监控系统与大厂面试技术篇（第 27-35 章）",
-        "附录：API、命令、术语与代码阅读清单",
+        "第九部分：GitHub 作品集、代码深挖与可复现实验（第 36-41 章）",
+        "附录：API、命令、术语、代码索引与现场速查",
     ]
     add_numbers(doc, toc)
 
@@ -1732,6 +1737,121 @@ def build_document(output_path: Path = OUT):
     ])
     add_callout(doc, "STAR 收束", "Situation：多源六类数据联合场景漏标。Task：降低人工成本且不污染原标签。Action：六 Teacher、几何分流、流式推理、多人审核、事务与审计。Result：形成可运行、可追溯、可继续评测的数据闭环；模型收益仍以固定测试集和现场专项集为准。", "tip")
 
+    chapter(doc, "36", "把 GitHub 变成中文优先的面试作品集", "让面试官在 30 秒、5 分钟、15 分钟和 30 分钟四种停留时间内都能看到完整证据。")
+    add_paragraph(doc, "大厂面试官通常不会从仓库第一行读到最后一行。首页必须先回答：解决什么真实问题、最难的工程矛盾是什么、有哪些真实运行证据、如何在没有私有数据和 GPU 的情况下复现、哪些能力仍是下一阶段设计。当前仓库因此使用中文默认 README，英文作为完整镜像，并增加文档总入口。")
+    add_table(doc, ["停留时间", "首页应提供的证据", "面试官形成的判断"], [
+        ["30 秒", "一句话价值、技术栈、真实审核界面", "不是孤立脚本，而是完整工程作品"],
+        ["5 分钟", "证据矩阵、完成度边界、生产规模数字", "知道你没有把规划冒充落地"],
+        ["15 分钟", "无 GPU 演示、预期输出和失败验收", "第三方能够复现关键机制"],
+        ["30 分钟", "核心代码导读、事务时序和数据不变量", "能够接受后端、算法和系统设计深挖"],
+    ], [1500, 3900, 3960])
+    add_picture(doc, ROOT / "docs" / "assets" / "platform-review-productivity.png", 6.65, "图 16  GitHub 首页使用的真实多人审核工作台", "真实审核界面、同图候选、一键决策、租约和最近审核")
+    add_paragraph(doc, "文档中心按目标而非文件名组织：快速理解、公开复现、核心代码、协作平台、证据边界、完整矿区系统和面试问答。这样首页负责导航，专题文档负责深度，学习手册负责把知识、代码和实验连接起来。")
+    add_table(doc, ["文档", "解决的问题", "面试用途"], [
+        ["README.md", "项目是什么、为什么值得继续看", "开场与作品展示"],
+        ["docs/README.zh-CN.md", "不同读者应该先看哪里", "快速切换讲解深度"],
+        ["REPRODUCIBLE_DEMO.zh-CN.md", "如何在无 GPU 环境复现", "现场演示与验收"],
+        ["CODE_WALKTHROUGH.zh-CN.md", "候选如何穿过 Python、Java、MySQL 和 Vue", "代码级追问"],
+        ["PROJECT_EVIDENCE.zh-CN.md", "哪些是实现、验证、原型和规划", "可信边界"],
+        ["INTERVIEW_QA.zh-CN.md", "高频问题如何回答", "模拟面试"],
+    ], [2500, 3600, 3260])
+    add_callout(doc, "作品集原则", "截图证明产品真实存在，测试证明代码行为，数据库约束证明并发边界，固定测试集证明模型收益。四类证据不能互相替代。", "warn")
+
+    chapter(doc, "37", "沿候选生命线读懂核心代码", "不按目录背类名，而是追踪一条候选从 CLI、Teacher、审核到派生标签的完整状态变化。")
+    add_logic_bridge(doc, "第 36 章解决别人如何看懂仓库", "自己必须能把首页中的每个结论追到代码", "用真实函数解释输入、状态、不变量和失败分支")
+    add_paragraph(doc, "第一条阅读主线从 CLI 开始。一级命令只负责分发，run 才延迟加载 Ultralytics，因此数据审计、阈值校准和审核可以在没有 PyTorch 的环境执行。这是运行时依赖隔离，而不是单纯的代码风格。")
+    add_code(doc, "yolo_label_recovery/cli.py", 40, 83, "观察 _load_pipeline 如何把可选 GPU 依赖限制在 run 命令，以及 main 如何把一级命令分发到独立模块。")
+    add_paragraph(doc, "第二条主线进入 Teacher 扫描。参数、数据、模型和输出路径先验证，再建立 run signature；每个类别只加载一个模型和同类 GT 缓存。当前 batch 只有在候选、派生标签和断点都能安全提交后才算完成。")
+    add_code(doc, "autolabel_with_single_class_models.py", 575, 650, "这一段完成数据契约、类别映射、模型权重和输出目录验证，并只扫描一次图片清单供六个 Teacher 复用。")
+    add_code(doc, "yolo_label_recovery/state.py", 14, 55, "run signature 防止用不同数据、模型或参数继续旧实验；state.json 使用原子替换保存已提交游标。")
+    add_paragraph(doc, "第三条主线是候选决策。模型输出不是标签，classify_candidate 联合同类和跨类 GT、模型内部重复和分类别置信度策略，生成关系、推荐动作和允许动作。")
+    add_code(doc, "yolo_label_recovery/review_decision.py", 100, 174, "高置信度只影响置信分段；真正允许什么审核动作由 GT/AUTO 状态、几何关系和冲突共同决定。")
+    add_paragraph(doc, "第四条主线是安全写回。人工决定仍不是直接 append；review-apply 再验证决策完整性、框合法性、源 GT 漂移和重复关系，并物化到新的数据集目录。")
+    add_code(doc, "yolo_label_recovery/review_apply.py", 78, 146, "写回前建立稳定候选索引，拒绝未决项和非法动作，并保持源数据集只读。")
+    add_table(doc, ["对象", "产生位置", "核心字段", "不变量"], [
+        ["Candidate", "Teacher 扫描", "split、image、class、box、confidence", "candidate_id 稳定"],
+        ["Review row", "review-build", "几何量、关系、允许动作", "证据可追溯"],
+        ["Decision", "桌面/Web 审核", "动作、审核人、时间、版本", "一条任务一个当前决定"],
+        ["Derived label", "review-apply", "原标签 + 已批准变更", "源标签不被覆盖"],
+    ], [1900, 2000, 2900, 2560])
+
+    chapter(doc, "38", "公开复现与故障注入实验", "用无 GPU fixture 和主动制造失败验证机制，而不是只看成功截图。")
+    add_paragraph(doc, "公开演示分为数据审计、阈值/共识/近重复/主动审核、GT/AUTO 审核和安全写回四组。它们不声明模型精度，但能证明输入输出契约、决策规则、幂等和失败处理。")
+    add_command(doc, r"""
+    python examples\create_synthetic_dataset.py --output .demo-dataset
+    yolo-label-recovery audit .demo-dataset --output-dir .demo-audit --hash-images --check-images
+    """, "演示数据故意有问题。预期 FAIL 才表示审计工具正确捕获非法类别、孤立标签和跨划分重复。")
+    add_command(doc, r"""
+    python examples\create_review_fixture.py --output-dir .demo-review-fixture
+    yolo-label-recovery review-build .demo-review-fixture\dataset .demo-review-fixture\candidates.csv `
+      --output-dir .demo-review-result --render --redact-paths
+    yolo-label-recovery review-ui .demo-review-result
+    """, "审核 fixture 枚举 GT0_AUTO0、GT1_AUTO0、GT0_AUTO1、GT1_AUTO1；先观察允许动作，再做少量人工决定。")
+    add_table(doc, ["故障实验", "操作", "预期系统行为", "证明的能力"], [
+        ["重复导入", "同一 review_queue 执行两次", "第二次跳过已有 candidate_id", "幂等与唯一键"],
+        ["旧版本提交", "保留旧页面后由另一端修改", "返回 409，不覆盖新决定", "乐观并发控制"],
+        ["租约过期", "停止心跳并等待截止", "任务重新可领取", "故障回收"],
+        ["路径穿越", "请求 review_root 外部路径", "403 拒绝", "资源级安全"],
+        ["源 GT 漂移", "审核后修改待替换 GT", "review-apply 阻止替换", "审核依据一致性"],
+        ["OOM", "提高 batch 直到显存不足", "未提交批次减半重试", "资源自适应与事务式提交"],
+    ], [1700, 2700, 2700, 2260])
+    add_callout(doc, "实验记录模板", "每次实验至少保存：初始状态、触发步骤、错误响应或日志、数据库/文件状态、恢复步骤和最终不变量。面试讲故障时，证据比‘我后来改好了’更有说服力。", "tip")
+
+    chapter(doc, "39", "代码级面试：Spring Boot、MySQL 与 Vue 深挖", "把一次一键审核拆成 HTTP、事务、锁、租约、版本、审计和前端状态机。")
+    add_paragraph(doc, "一次领取不是 Repository 查一行那么简单。Service 先检查项目访问权，再复用审核人仍有效的当前租约；没有活动任务时才在事务中用悲观锁查找第一条 PENDING 或过期 CLAIMED 任务，写入 claimed_by 和 lease_until，并追加审计事件。")
+    add_code(doc, "platform/backend/src/main/java/com/jiapeng/labelreview/service/TaskService.java", 43, 84, "claimNext 的事务边界同时覆盖访问检查、活动任务复用、行锁领取、租约写入和审计。")
+    add_code(doc, "platform/backend/src/main/java/com/jiapeng/labelreview/repository/TaskRepository.java", 18, 37, "PESSIMISTIC_WRITE 只保护短领取事务；查询条件同时允许 PENDING 和租约已过期的 CLAIMED。")
+    add_paragraph(doc, "数据库约束提供最终防线：任务唯一键阻止重复候选，决定唯一键阻止一任务多决定，@Version 阻止旧页面覆盖，复合索引对应领取、本图候选和最近审核三条高频路径。")
+    add_table(doc, ["机制", "时间尺度", "失败示例", "系统响应"], [
+        ["悲观行锁", "一次领取事务", "两人同时点领取", "等待锁后拿到不同任务"],
+        ["租约", "跨请求的分钟级占用", "浏览器断网或关闭", "到期后任务重新可领取"],
+        ["乐观版本", "提交瞬间", "旧页面提交决定", "409 Conflict"],
+        ["唯一键", "数据生命周期", "队列重复导入", "跳过或数据库拒绝重复"],
+        ["审计事件", "事后追溯", "管理员修订决定", "保留操作者和前后动作"],
+    ], [1700, 2000, 3000, 2660])
+    add_paragraph(doc, "前端高频路径使用一键保存并自动前进：先提交当前决定，成功后优先找本图下一条 PENDING；没有则领取下一图。失败时保留当前任务和用户输入，不得假装已保存。")
+    add_code(doc, "platform/frontend/src/App.vue", 119, 207, "claimNext、submitDecision 与 advanceAfterDecision 共同形成高吞吐但可恢复的前端状态机。")
+    add_callout(doc, "高频追问", "为什么前端隐藏按钮不算授权？因为请求可以绕过界面。角色、项目范围、任务所有权、租约和版本必须由后端在每次请求中重新验证。", "warn")
+
+    chapter(doc, "40", "用证据矩阵控制项目表述", "明确区分实现、真实验证、局部原型和架构设计，既不低估工作量，也不透支可信度。")
+    add_table(doc, ["能力", "当前证据等级", "可以怎样说", "不能怎样说"], [
+        ["Multi-Teacher 全量扫描", "实现 + 真实规模", "完成 174,426 次图片-模型推理", "Teacher 消除了全部漏标"],
+        ["多人审核平台", "实现 + 双账号验证", "30,183 任务已导入并协作审核", "已经通过高并发生产压测"],
+        ["历史决定迁移", "真实验证", "4,465 条决定幂等迁移", "CSV 本身就是数据库真值"],
+        ["模型收益", "待固定集继续验证", "按六类和联合场景对比", "训练损失下降就说明更好"],
+        ["20 路 RTSP", "系统设计", "已设计最新帧和动态 Batch 方案", "仓库已稳定承载 20 路"],
+        ["RAG/Agent", "系统设计", "已定义证据与工具安全边界", "已自动执行真实高风险处置"],
+    ], [2100, 1900, 3300, 2060])
+    add_paragraph(doc, "真实数字必须带口径。29,071 张图片说明数据规模，174,426 次推理说明六个 Teacher 的计算工作量，30,183 条审核项说明人机协作任务规模；它们都不能直接推出 mAP、事件准确率或最大并发用户数。")
+    add_formula(doc, "证据化表达", "结论强度 <= 最弱证据强度", "截图只能证明界面存在；测试证明特定行为；真实规模运行证明该范围可用；独立固定测试集才证明模型收益。")
+    add_numbers(doc, [
+        "先说业务问题与错误代价，不先报技术名词。",
+        "再说关键取舍：单类 Teacher、源数据只读、人工门控和数据库并发。",
+        "随后给真实数字和可复现 fixture，说明验证范围。",
+        "最后主动说明 RTSP、RAG、Agent 和边缘部署的当前完成度与下一步。",
+    ])
+    add_callout(doc, "面试加分点", "能主动解释‘为什么这个数字不能证明另一个结论’，比堆更多漂亮指标更能体现工程判断。", "tip")
+
+    chapter(doc, "41", "十四天把项目真正变成自己的能力", "用代码跟读、故障实验、二次开发和模拟面试完成从会用到会设计的跃迁。")
+    add_table(doc, ["阶段", "天数", "必须完成", "可复核输出"], [
+        ["问题与数据", "Day 1-2", "画出漏标错误监督和 GT/AUTO 四状态", "一页问题定义、三个手算框案例"],
+        ["Python 链路", "Day 3-4", "跑公开 fixture，跟读 run/review/apply", "报告、候选 CSV、派生数据差异"],
+        ["资源与恢复", "Day 5", "制造中断或 OOM，验证 resume", "前后 state、manifest 和去重证据"],
+        ["后端与数据库", "Day 6-8", "双账号领取、过期、409、重复导入", "API 响应、数据库行和审计事件"],
+        ["前端与部署", "Day 9-10", "修改一个审核交互并构建部署", "截图、构建产物和回归记录"],
+        ["二次开发", "Day 11-12", "新增一个小能力与完整测试", "PR 风格说明和 CI 结果"],
+        ["面试演练", "Day 13-14", "30 秒、3 分钟、30 分钟三版讲解", "录音复盘、追问清单和白板图"],
+    ], [1700, 1100, 3600, 2960])
+    add_paragraph(doc, "推荐的二次开发题目：增加项目级类别过滤；导出审核员效率报表；为历史修订增加原因枚举；为领取查询增加 Testcontainers MySQL 并发测试；为 review-apply 增加变更清单和回滚 manifest。每个题目都要同时修改契约、实现、测试、文档和演示。")
+    add_table(doc, ["完成标准", "不合格表现", "合格表现"], [
+        ["理解代码", "只能说用了哪些框架", "能追踪一次状态变化到 SQL 和失败响应"],
+        ["理解算法", "背 IoU 公式", "能手算并解释 IoU/IoS/中心距离为何给出不同判断"],
+        ["理解并发", "说用了锁", "能区分行锁、租约、版本和唯一键"],
+        ["理解验证", "展示成功截图", "能设计失败实验并说明不变量"],
+        ["理解边界", "把规划都说成已落地", "按证据等级准确表达"],
+    ], [1900, 3300, 4160])
+    add_callout(doc, "最终目标", "你应该能在没有这份手册时，从白板画出双闭环架构，打开仓库定位关键函数，构造一个失败场景，解释数据库如何保护状态，并明确哪些结论还需要下一轮评测。", "info")
+
     chapter(doc, "附录 A", "API 速查", "快速定位前后端契约。", new_page=False)
     add_table(doc, ["方法", "路径", "角色", "用途"], [
         ["POST", "/api/auth/login", "公开", "账号密码换 JWT"],
@@ -1798,7 +1918,7 @@ def build_document(output_path: Path = OUT):
         ["前端审核状态", "异步请求、组件状态、Blob URL", "App.vue、API client", "快速切换任务，验证旧图片请求不会覆盖新任务"],
         ["交付与复现", "配置、迁移、日志、测试金字塔", "one-click 脚本、Flyway、CI", "空机器启动后完成登录、导入、审核、导出闭环"],
     ], [1800, 2200, 2450, 2910])
-    add_callout(doc, "推荐学习顺序", "先完成算法链路：第 0、5、6、7、8、9、25 章；再完成系统链路：第 10 至 18、23、24 章；最后回到第 19 至 22 章做实验、部署和面试表达。每学完一段，都用第 25 章的一张图重新讲一遍。", "info")
+    add_callout(doc, "推荐学习顺序", "先完成算法链路：第 0、5、6、7、8、9、25、37 章；再完成系统链路：第 10 至 18、23、24、39 章；随后用第 38 章做故障实验，最后用第 36、40、41 章整理 GitHub 作品集和面试表达。每学完一段，都用第 25 章的一张图重新讲一遍。", "info")
 
     doc.add_heading("D.1 建议的七天学习节奏", level=2)
     add_table(doc, ["天", "学习目标", "必须动手", "当天输出"], [
@@ -1823,6 +1943,33 @@ def build_document(output_path: Path = OUT):
     for label, url in sources:
         p = doc.add_paragraph(style="List Bullet")
         hyperlink(p, label, url)
+
+    chapter(doc, "附录 E", "现场演示与面试速查", "在联调、答辩或面试前十分钟快速确认环境、入口、证据和边界。")
+    add_table(doc, ["场景", "先打开/执行", "必须确认"], [
+        ["GitHub 展示", "README.md -> 文档总入口", "中文首页、截图、CI 和相对链接正常"],
+        ["无 GPU 演示", "create_synthetic_dataset + audit", "预期 FAIL 且问题数量符合 fixture"],
+        ["审核演示", "review-build + review-ui", "同图候选、允许动作、自动保存和恢复"],
+        ["多人平台", "登录 -> 项目 -> 领取 -> 决策 -> 最近审核", "两个账号不重复领取、纠错有审计"],
+        ["代码讲解", "cli.py -> main pipeline -> review -> TaskService", "每段都能说输入、不变量和失败路径"],
+        ["模型汇报", "固定 test 与联合场景专项集", "分类别指标、阈值、模型版本和硬件口径"],
+    ], [1700, 3600, 4060])
+    add_command(doc, r"""
+    python scripts\validate_docs.py
+    python tests\run_smoke_tests.py
+    pytest
+    cd platform\backend
+    mvn test
+    cd ..\frontend
+    npm ci
+    npm run build
+    """, "提交或现场演示前的最小验证链。根据当前机器是否安装 Java、Node 和完整 Python 开发依赖选择执行。")
+    add_bullets(doc, [
+        "30 秒开场：业务问题、核心闭环、真实任务规模。",
+        "3 分钟主线：错误监督、Teacher 证据、多几何审核、资源控制、多人一致性、固定评测。",
+        "30 分钟深挖：代码入口、事务边界、失败实验、数据库约束、前端状态和演进边界。",
+        "不要把截图当精度证据，不要把双账号试用称为高并发，不要把 RTSP/RAG/Agent 规划称为仓库已实现。",
+    ])
+    add_callout(doc, "最后自检", "如果面试官随机指向 README 的一句话，你都能在 30 秒内打开对应代码、测试或报告；如果不能，就先降低表述强度，再补证据。", "warn")
 
     # Metadata and save.
     props = doc.core_properties

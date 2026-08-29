@@ -1,15 +1,20 @@
-## Summary
+## Problem
 
-Describe the behavior changed and why it is safe for source labels.
+What user or engineering failure does this change address?
+
+## Change
+
+Describe the behavior, data contract and failure handling.
 
 ## Verification
 
-- [ ] `python -m compileall -q autolabel_with_single_class_models.py yolo_label_recovery tests`
-- [ ] `python tests/run_smoke_tests.py`
-- [ ] `pytest`
-- [ ] No private images, labels, weights, credentials, logs, IP addresses or absolute local paths are included.
-- [ ] Candidate-writing or resume changes include an idempotence test.
+- [ ] Python smoke tests / pytest
+- [ ] Backend tests when `platform/backend` changes
+- [ ] Frontend build when `platform/frontend` changes
+- [ ] Public fixture or documentation updated when behavior changes
+- [ ] No private data, weights, credentials or machine-specific paths included
+- [ ] Source labels remain immutable unless the documented derived-dataset workflow is used
 
 ## Evidence
 
-Include a synthetic fixture, sanitized output summary or screenshot when behavior is user-visible.
+Attach redacted logs, report output or screenshots that support the change. Screenshots alone do not establish model accuracy.

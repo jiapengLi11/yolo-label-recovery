@@ -1,8 +1,8 @@
 # YOLO Label Recovery
 
-> Chinese engineering case study: [From incomplete labels to a mining-safety AI feedback loop](docs/MINING_SAFETY_AI_ENGINEERING_BLOG.zh-CN.md) | [DOCX with embedded figures](docs/矿区智能安全监控项目复盘博客_图文版.docx)
+> 中文优先的工程作品集：[文档总入口](docs/README.zh-CN.md) | [15 分钟公开演示](docs/REPRODUCIBLE_DEMO.zh-CN.md) | [核心代码导读](docs/CODE_WALKTHROUGH.zh-CN.md) | [项目证据与边界](docs/PROJECT_EVIDENCE.zh-CN.md)
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+[简体中文](README.md) | [English](README.en.md) | [完整中文长版](README.zh-CN.md)
 
 [![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jiapengLi11/yolo-label-recovery)](https://github.com/jiapengLi11/yolo-label-recovery/releases)
@@ -11,166 +11,194 @@
 [![Vue](https://img.shields.io/badge/Vue-3.5-42B883?logo=vuedotjs&logoColor=white)](platform/frontend)
 [![License: MIT](https://img.shields.io/badge/license-MIT-16a085.svg)](LICENSE)
 
-A safe, auditable and memory-efficient multi-teacher annotation recovery and human-review platform for YOLO datasets.
+一个安全、可审计、内存友好的多 Teacher YOLO 漏标恢复与人机协同审核平台。
 
-This project was extracted from an industrial safety-vision workflow. It uses one detector per class to scan a multi-class dataset, identifies high-confidence predictions that are not covered by existing labels, and writes additions to a new label tree without modifying the source dataset.
+本项目源自工业安全视觉任务。它使用每个类别各自的单类别检测器扫描多类别数据集，发现未被现有标签覆盖的高置信度预测，并将新增标注写入派生标签目录，始终不修改源数据集。
 
-## Pre-generated showcase
+## 给面试官的项目导览
 
-No GPU or live command is needed to inspect these results. Analytical report screenshots use committed synthetic fixtures; the grouped-review gallery and web-platform captures use real, user-approved production review samples to show the actual operating experience. Screenshots demonstrate behavior and report structure, not model accuracy claims.
+| 时间 | 建议入口 | 能看到什么 |
+|---|---|---|
+| 30 秒 | 本页“核心特性”和真实界面 | 业务问题、技术栈、产品形态 |
+| 5 分钟 | [项目证据与边界](docs/PROJECT_EVIDENCE.zh-CN.md) | 已实现、已验证、规划能力的严格区分 |
+| 15 分钟 | [公开演示与验收](docs/REPRODUCIBLE_DEMO.zh-CN.md) | 无 GPU 可复现的数据审计、审核和安全写回 |
+| 30 分钟 | [核心代码导读](docs/CODE_WALKTHROUGH.zh-CN.md) | Python 流水线、Spring Boot 并发、MySQL 约束与 Vue 状态 |
+| 深入讨论 | [矿区系统设计](docs/MINING_SYSTEM_DESIGN.zh-CN.md) | 20 路 RTSP、事件告警、RAG 和 Agent 的演进边界 |
 
-### Model-free dataset audit
+项目的核心不是“用模型自动生成更多框”，而是建立一条风险可控的证据链：模型只提出候选，规则解释关系，人工授权决策，数据库保证协作一致性，安全写回生成可回滚的数据版本，固定测试集最终判断模型是否真的变好。
 
-![Pre-generated YOLO dataset audit](docs/assets/audit-preview.png)
+![真实多人审核平台](docs/assets/platform-review-productivity.png)
 
-The fixture intentionally contains one invalid class ID, one orphan label and one exact image duplicated across train/val. The audit correctly returns `FAIL`, `2` critical issues, `1` warning and `1` cross-split duplicate group.
-
-### Multi-teacher recovery report
-
-![Pre-generated multi-teacher quality report](docs/assets/report-preview.png)
-
-| Evidence | Pre-generated result |
-|---|---:|
-| Image-model scans | 3,600 |
-| Specialist teachers | 3 |
-| AUTO / REVIEW examples | 3 / 3 |
-| Initial batch | 32 |
-| Stable batches | 32 / 16 / 8 |
-| Simulated OOM retries | 3 |
-| Source labels modified | No |
-
-### Audited threshold calibration
-
-![Pre-generated threshold calibration report](docs/assets/calibration-preview.png)
-
-The public fixture contains `2,400` reviewed candidates across all six classes. AUTO requires the `95%` Wilson lower confidence bound for precision to reach `95%`, while REVIEW preserves `90%` of audited positives. All six classes produce statistically supported policies. AUTO thresholds range from `0.732` for tractor to `0.859` for smoking, demonstrating why one global confidence threshold is unsafe.
-
-### Cross-Teacher consensus gate
-
-![Pre-generated cross-Teacher consensus report](docs/assets/consensus-preview.png)
-
-The public fixture contains `96` primary candidates across six classes. Of `72` primary AUTO candidates, `48` receive one-to-one spatial support from an independent verifier and remain AUTO; `24` are safely downgraded to REVIEW. The stage is model-free and adds no GPU memory pressure.
-
-### Perceptual near-duplicate review groups
-
-![Pre-generated perceptual near-duplicate report](docs/assets/near-duplicates-preview.png)
-
-The public fixture groups resize, JPEG recompression and brightness variants without merging black and white low-texture frames. It finds `3` groups containing `7` images, reduces first-pass review to `3` representatives and flags `2` groups crossing dataset splits.
-
-### Diversity-aware active review queue
-
-![Pre-generated active review prioritization report](docs/assets/prioritization-preview.png)
-
-The public fixture contains `36` imbalanced REVIEW images. A budget of `12` covers all `6` classes, with one class represented in each of the first six positions. Dynamic rarity prevents small classes from being ignored while perceptual diversity suppresses repeated frames.
-
-### Exhaustive GT/AUTO human-review gate
-
-![Pre-generated same-target ambiguity review](docs/assets/review-gate-preview.jpg)
-
-The no-GPU fixture enumerates all four image/class states (`GT0_AUTO0`, `GT1_AUTO0`, `GT0_AUTO1`, `GT1_AUTO1`). It combines IoU, intersection-over-smaller-area, normalized center distance and area ratio to distinguish already-labelled objects, same-target extent disagreement, distinct missing objects and cross-class conflicts. High confidence remains evidence, not permission to write a label.
-
-### Image-grouped desktop review application
-
-![Bilingual image-grouped review application](docs/assets/grouped-review-preview.png)
-
-<p>
-  <img src="docs/assets/grouped-review-joint-scene.jpg" width="49%" alt="Real joint-scene review with four candidates">
-  <img src="docs/assets/grouped-review-multibox-scene.jpg" width="49%" alt="Real mine review with five candidates">
-</p>
-
-The portable Tk application groups every candidate belonging to the same source image. Reviewers can compare overlapping classes in context, switch between boxes without reloading the image, and only choose actions permitted by the decision engine. It supports Chinese and English interfaces, keyboard review, append-only JSONL journaling, periodic atomic CSV checkpoints and crash-safe resume. The gallery above comes from a real production review package and includes multi-class, multi-box joint scenes.
-
-See [Grouped Review Application](docs/GROUPED_REVIEW_APP.md) for the queue contract, persistence model and deployment workflow.
-
-### Multi-user collaboration platform
-
-The repository now includes a deployable web platform for teams that outgrow the portable desktop reviewer. A Vue 3 + TypeScript client talks to a Spring Boot 4 REST API backed by MySQL and Flyway. JWT authentication, `ADMIN / REVIEWER / AUDITOR` RBAC, project membership, pessimistic task claiming, renewable leases, optimistic versions and immutable audit events prevent duplicate work and stale decisions. One-click decisions automatically advance through image-grouped candidates; visible lease/network health and a reviewer-scoped recent-decision correction path make failures recoverable without weakening the audit boundary. The Python bridge streams the existing `review_queue.csv` into the API in bounded, idempotent batches.
-
-![Real role-aware login entry](docs/assets/platform-login.png)
-
-![Real multi-user review dashboard](docs/assets/platform-dashboard.png)
-
-<p>
-  <img src="docs/assets/platform-review.png" width="49%" alt="Real joint-scene web review workspace">
-  <img src="docs/assets/platform-admin.png" width="49%" alt="Reviewer account and project assignment panel">
-</p>
-
-![Real one-click review, lease and recent-decision workflow](docs/assets/platform-review-productivity.png)
-
-These are captures of the actual Vue + Spring Boot application, not design mockups. The login view shows the role-aware entry used by reviewers; the workspace shows a claimed task, real review visual, class confidence, constrained decisions and live project progress; the admin view demonstrates account creation and project membership assignment.
+## 一张图看完整链路
 
 ```mermaid
 flowchart LR
-    P["Python Multi-Teacher pipeline"] -->|"review_queue.csv / batches <= 500"| A["Spring Boot API"]
-    V["Vue review workspace"] -->|"JWT + heartbeat + decisions"| A
-    A --> M[("MySQL + Flyway")]
-    A --> R["Read-only review visuals"]
+    A[只读 YOLO 数据集] --> B[数据审计]
+    B --> C[六个单类别 Teacher 串行扫描]
+    C --> D[候选证据与分类别阈值]
+    D --> E[GT/AUTO 多几何关系]
+    E --> F[桌面或 Web 人工审核]
+    F --> G[安全写回派生数据集]
+    G --> H[固定测试集与联合场景评估]
+    H --> I[部署与困难样本回流]
 ```
 
-The workflow has been validated on a trusted campus LAN with two independent reviewer accounts working concurrently. It imported `30,183` tasks and migrated `4,465` historical desktop decisions through an idempotent endpoint while keeping the real review package read-only. This verifies the allocation, migration and audit workflow; it is not a large-scale load-test or model-accuracy claim.
+## 预生成展示结果
 
-See [Collaboration Platform](docs/COLLABORATION_PLATFORM.md) for screenshots, deployment, API contracts, concurrency design and interview walkthrough.
+查看以下结果不需要 GPU 或现场执行命令。分析报告截图来自仓库内置合成数据；按图片聚合审核图库和 Web 平台运行截图使用已获许可的真实生产审核样例，用于展示实际工作体验。所有截图都只说明工具行为和报告结构，不构成模型精度声明。
 
-### Production-scale validation
+### 无模型数据集审计
 
-![Anonymized production validation summary](docs/assets/production-validation-summary.svg)
+![预生成 YOLO 数据集审计结果](docs/assets/audit-preview.png)
 
-The review gate was also exercised on a private six-class dataset containing `29,071` images. Six specialist Teachers completed `174,426` image-model passes, produced `99,696` evidence rows and generated `30,183` review rows with `0` render failures while leaving the source labels unchanged. See the [anonymized case study](docs/PRODUCTION_VALIDATION.md).
+合成数据主动注入了一个非法类别 ID、一个孤立标签，以及一组跨 train/val 的精确重复图片。审计结果正确返回 `FAIL`、`2` 个严重问题、`1` 个警告和 `1` 组跨划分重复。
 
-## Why this project exists
+### 多 Teacher 漏标恢复报告
 
-Multi-class datasets often contain combined scenes such as `person + helmet + smoking` or `person + slipper`. If the original annotation process focused on one target at a time, valid objects from other classes can be missing. Training a new multi-class model on incomplete labels can make the model learn the wrong supervision signal.
+![预生成多 Teacher 质量报告](docs/assets/report-preview.png)
 
-The workflow is deliberately conservative:
+| 展示证据 | 预生成结果 |
+|---|---:|
+| 图片-模型扫描次数 | 3,600 |
+| 单类别 Teacher 数量 | 3 |
+| AUTO / REVIEW 示例 | 3 / 3 |
+| 初始 batch | 32 |
+| 各模型稳定 batch | 32 / 16 / 8 |
+| 模拟 OOM 重试次数 | 3 |
+| 是否修改源标签 | 否 |
+
+### 审核驱动的阈值校准
+
+![预生成阈值校准报告](docs/assets/calibration-preview.png)
+
+公开样本包含六个类别共 `2,400` 条人工审核候选。AUTO 要求精度的 `95%` Wilson 置信下限达到 `95%`，REVIEW 则保留 `90%` 的审核正样本；六个类别均得到统计证据支持的策略。AUTO 阈值从拖拉机的 `0.732` 到吸烟的 `0.859` 差异明显，直观证明全类别共用一个置信度阈值并不安全。
+
+### 跨 Teacher 一致性门控
+
+![预生成跨 Teacher 一致性报告](docs/assets/consensus-preview.png)
+
+公开样本包含六类共 `96` 个主 Teacher 候选。在 `72` 个主 AUTO 中，`48` 个得到独立验证 Teacher 的一对一空间支持并保留为 AUTO，另外 `24` 个安全降级到 REVIEW。该阶段不依赖模型推理，不会增加显存压力。
+
+### 感知近重复审核分组
+
+![预生成感知近重复报告](docs/assets/near-duplicates-preview.png)
+
+公开样例能够聚合缩放、JPEG 重压缩和亮度变化图片，同时不会错误合并纯黑与纯白低纹理帧。结果包含 `3` 组、共 `7` 张图片，只需优先审核 `3` 张代表图，并发现 `2` 组跨数据划分近重复。
+
+### 多样性感知主动审核队列
+
+![预生成主动审核优先级报告](docs/assets/prioritization-preview.png)
+
+公开样例包含 `36` 张类别不均衡的 REVIEW 图片。预算为 `12` 时覆盖全部 `6` 类，前六个位置每类各占一个。动态稀缺度避免小类被忽略，感知多样性则抑制重复连续帧。
+
+### GT/AUTO 全情况人工审核门控
+
+![预生成同目标框尺度冲突审核图](docs/assets/review-gate-preview.jpg)
+
+无 GPU 合成样例枚举 `GT0_AUTO0`、`GT1_AUTO0`、`GT0_AUTO1`、`GT1_AUTO1` 四种图片/类别状态，并联合 IoU、IoS、归一化中心距离和面积倍率，区分已标注目标、同目标框尺度不一致、不同漏标目标和跨类别冲突。高置信度仍然只是证据，不代表拥有写标签的权限。
+
+### 按图片聚合的桌面审核平台
+
+![中英双语按图片聚合审核平台](docs/assets/grouped-review-preview.png)
+
+<p>
+  <img src="docs/assets/grouped-review-joint-scene.jpg" width="49%" alt="真实联合场景四候选审核">
+  <img src="docs/assets/grouped-review-multibox-scene.jpg" width="49%" alt="真实矿区五候选审核">
+</p>
+
+便携式 Tk 审核器会把同一原图上的所有候选框聚合展示。审核人员可以结合重叠类别和联合场景判断候选，在不重复加载图片的情况下切换框，并且只能选择决策引擎允许的动作。平台支持中英文界面、键盘审核、JSONL 追加日志、CSV 原子检查点和异常退出续审。上方图库来自真实生产审核包，包含多类别、多框联合场景。
+
+队列字段约定、持久化原理和交付流程详见[按图片聚合审核平台设计](docs/GROUPED_REVIEW_APP.md)。
+
+### 多人登录协作平台
+
+当便携式桌面审核器无法满足多人并行工作时，可以启用仓库内的 Web 协作平台。Vue 3 + TypeScript 前端连接 Spring Boot 4 REST API，使用 MySQL + Flyway 持久化；JWT 登录、`ADMIN / REVIEWER / AUDITOR` 角色、项目成员隔离、悲观锁原子领任务、可续租心跳、乐观版本号和不可变审计事件共同防止重复审核与旧页面覆盖。主审核采用“一键决定并自动前进”，租约/心跳/网络状态直接可见，“我的最近审核”只返回当前审核人在当前项目中的记录并支持审计式纠错。Python 桥接脚本会把现有 `review_queue.csv` 以有界、幂等批次流式导入。
+
+![真实角色登录入口](docs/assets/platform-login.png)
+
+![真实多人审核进度看板](docs/assets/platform-dashboard.png)
+
+<p>
+  <img src="docs/assets/platform-review.png" width="49%" alt="真实联合场景 Web 审核工作台">
+  <img src="docs/assets/platform-admin.png" width="49%" alt="审核账号与项目分配面板">
+</p>
+
+![真实一键审核、租约状态与最近决定纠错流程](docs/assets/platform-review-productivity.png)
+
+以上均为 Vue + Spring Boot 应用的真实运行截图，不是设计示意图。登录页展示审核人员实际使用的角色入口；工作台同时展示已领取任务、真实审核图、类别置信度、受约束决策按钮和项目实时进度；管理员界面展示账号创建与项目成员分配能力。
+
+```mermaid
+flowchart LR
+    P["Python Multi-Teacher 流水线"] -->|"review_queue.csv / 每批不超过 500"| A["Spring Boot API"]
+    V["Vue 多人审核工作台"] -->|"JWT + 心跳 + 决策"| A
+    A --> M[("MySQL + Flyway")]
+    A --> R["只读审核图目录"]
+```
+
+平台已在可信校园网中使用两个独立账号同时领取和审核任务，导入 `30,183` 条候选，并通过幂等接口迁移 `4,465` 条桌面端历史决定；真实审核包始终只读。这证明了任务分配、历史迁移和审计流程可用，但不等同于大规模并发压测或模型精度结论。
+
+真实截图、部署命令、接口契约、并发原理和面试讲解见[多人协作平台设计](docs/COLLABORATION_PLATFORM.md)。
+
+### 生产规模验证
+
+![脱敏生产规模验证汇总](docs/assets/production-validation-summary.svg)
+
+该人工门控还在一个包含 `29,071` 张图片的私有六分类数据集上完成全量验证。六个单类别 Teacher 共执行 `174,426` 次图片-模型推理，形成 `99,696` 条预测证据和 `30,183` 条审核项，可视化失败为 `0`，且源标签保持不变。详见[脱敏案例](docs/PRODUCTION_VALIDATION.zh-CN.md)。
+
+## 为什么需要这个项目
+
+多类别数据集经常包含 `person + helmet + smoking`、`person + slipper` 等联合场景。如果原始标注工作每次只关注一个目标，图中其他类别的有效目标就可能漏标。使用不完整标签训练多类别模型时，这些目标会被当作背景，从而向模型传递错误监督信号。
+
+本工作流采用保守策略：
 
 ```mermaid
 flowchart TD
-    A["Existing YOLO dataset"] --> Q["Model-free audit"]
-    Q -->|"schema and split checks pass"| B["Immutable source labels"]
-    B --> C["Load one specialist teacher"]
-    C --> D["Batch FP16 streaming inference"]
-    D --> E["Same-class prediction/GT IoU matching"]
-    E -->|"IoU >= existing threshold"| F["Already labeled: ignore"]
-    E -->|"Possible missing object"| G["Confidence routing"]
+    A["现有 YOLO 数据集"] --> Q["无模型数据审计"]
+    Q -->|"结构与数据划分检查通过"| B["只读源标签"]
+    B --> C["加载一个单类别 Teacher"]
+    C --> D["批量 FP16 流式推理"]
+    D --> E["预测框与同类别原标签进行 IoU 匹配"]
+    E -->|"IoU >= 已标注阈值"| F["已有标签：忽略"]
+    E -->|"疑似漏标"| G["按置信度分流"]
     G --> H["IGNORE"]
-    G --> I["REVIEW + audit CSV"]
-    G --> J["AUTO candidate"]
-    J --> M{"Optional verifier agreement"}
-    M -->|"supported evidence"| R["Exhaustive GT/AUTO review gate"]
-    M -->|"unsupported"| I
+    G --> I["REVIEW + 审计 CSV"]
+    G --> J["AUTO 候选"]
+    J --> M{"可选验证 Teacher 一致性"}
+    M -->|"形成支持证据"| R["GT/AUTO 全情况人工门控"]
+    M -->|"未获支持"| I
     I --> R
-    R -->|"explicit human decision"| K["Immutable derived label tree"]
-    K --> N["Trainable YOLO dataset"]
-    I --> L["HTML report and class-wise samples"]
+    R -->|"明确人工决策"| K["不可变派生标签目录"]
+    K --> N["可训练 YOLO 数据集"]
+    I --> L["HTML 报告与分类抽样图"]
     J --> L
     R --> L
 ```
 
-## Main properties
+## 核心特性
 
-- Original `labels/` are read-only from the tool's point of view.
-- Only one detector is kept in GPU memory at a time.
-- `stream=True` consumes prediction results incrementally.
-- Candidate records are written incrementally to CSV instead of accumulating all predictions in RAM.
-- Per-class model class IDs are mapped to the dataset class IDs from `data.yaml`.
-- Existing-label IoU and candidate-duplicate IoU are separate controls.
-- `--materialize-dataset` creates a standard YOLO dataset using hardlinks when possible.
-- Review images are grouped by unique image so multiple candidates from one image remain visible together.
-- A model-free audit catches malformed labels, corrupt images and exact train/val/test leakage before GPU work starts.
-- Audited candidate decisions can calibrate class-specific AUTO policies using a Wilson precision lower bound and REVIEW policies using positive recall.
-- Independent Teacher candidate streams can gate AUTO decisions with one-to-one spatial agreement without loading two models together.
-- Perceptual hashes, a BK-tree and conservative visual guards group repeated review work and expose near-duplicate split leakage.
-- Image-level active review combines confidence entropy, dynamically decayed class rarity and greedy perceptual diversity.
-- Exhaustive GT/AUTO accounting prevents candidate-only reports from hiding absence cases.
-- Offline review requires explicit add, replace, evaluation or reject decisions and autosaves progress.
-- The desktop reviewer groups candidates by image, supports Chinese/English UI and disables actions that are invalid for the current decision case.
-- Every click is first persisted to an append-only JSONL journal; CSV snapshots use atomic replacement for safe recovery after interruption.
-- Safe apply blocks unresolved decisions, detects source-GT drift, rechecks duplicates and creates an immutable derived dataset.
-- Every scan records a local manifest with parameters, image inventory, package versions, CUDA and GPU metadata.
+- 工具将原始 `labels/` 视为只读数据。
+- 显存中同一时间只保留一个检测模型。
+- 使用 `stream=True` 增量消费推理结果。
+- 候选记录持续写入 CSV，不在内存中累计全部预测。
+- 单类别模型的类别 ID 会映射到 `data.yaml` 中的多类别 ID。
+- 已有标签匹配 IoU 与候选框去重 IoU 分开控制。
+- `--materialize-dataset` 可生成标准 YOLO 数据集，并在条件允许时使用硬链接。
+- 复核图按原图聚合，同一张图中的多个候选目标会一起展示。
+- GPU 推理前先进行无模型审计，检查错误标签、损坏图片和 train/val/test 精确重复。
+- 使用人工审核候选校准分类别策略：AUTO 采用 Wilson 精度置信下限，REVIEW 采用正样本召回约束。
+- 使用独立 Teacher 候选流进行一对一空间一致性门控，无需同时加载两个模型。
+- 使用感知哈希、BK-tree 和保守视觉约束压缩重复审核工作，并发现跨划分近重复泄漏。
+- 图片级主动审核联合置信度熵、动态衰减类别稀缺度和贪心感知多样性。
+- 完整 GT/AUTO 枚举避免只看候选框的报告遗漏无预测状态。
+- 离线审核要求明确选择新增、替换、评测标签或拒绝，并自动保存审核进度。
+- 桌面审核器按原图聚合候选，支持中英文界面，并禁用当前决策场景不允许的操作。
+- 每次点击先追加写入 JSONL 日志，CSV 快照通过原子替换保存，异常中断后可安全恢复。
+- 安全写回会阻止未完成决策、检测源 GT 漂移、再次查重，并创建不可变的派生数据集。
+- 每次扫描生成 manifest，记录参数、图片清单、依赖版本、CUDA 和 GPU 信息。
 
-## One-minute public demo
+## 一分钟公开演示
 
-The demo deliberately creates an invalid class ID, an orphan label and an image duplicated across splits. No model weights or private data are needed.
+演示脚本会故意生成非法类别 ID、孤立标签，以及跨数据划分重复图片。它不需要模型权重或私有数据。
 
 ```powershell
 python examples\create_synthetic_dataset.py --output .demo-dataset
@@ -180,17 +208,17 @@ yolo-label-recovery audit .demo-dataset `
   --check-images
 ```
 
-Open `.demo-audit\dataset_audit.html`. The expected result is `FAIL`: the fixture proves that the audit catches the injected defects.
+打开 `.demo-audit\dataset_audit.html`。预期结果为 `FAIL`，说明审计工具成功捕获了演示数据中主动注入的问题。
 
-Inspect an unfamiliar training machine before an expensive scan:
+在昂贵的全量扫描前检查陌生训练机环境：
 
 ```powershell
 yolo-label-recovery doctor --output environment.json --redact-paths
 ```
 
-## Quick start
+## 快速开始
 
-Install only the lightweight audit/report tools (no PyTorch or Ultralytics download):
+只安装轻量数据审计与报告功能，不下载 PyTorch 或 Ultralytics：
 
 ```powershell
 python -m venv .venv
@@ -200,7 +228,7 @@ python -m pip install -e .
 yolo-label-recovery audit D:\data\mining-safety --output-dir D:\data\audit-001 --hash-images --check-images
 ```
 
-Calibrate thresholds from a human-reviewed candidate CSV without any GPU dependency:
+无需 GPU，即可根据人工审核候选 CSV 校准阈值：
 
 ```powershell
 yolo-label-recovery calibrate reviewed_candidates.csv `
@@ -212,7 +240,7 @@ yolo-label-recovery calibrate reviewed_candidates.csv `
   --redact-paths
 ```
 
-Gate primary AUTO candidates with an independent verifier, without a GPU dependency:
+无需 GPU，即可使用独立验证 Teacher 对主 AUTO 候选进行门控：
 
 ```powershell
 yolo-label-recovery consensus primary_candidates.csv verifier_candidates.csv `
@@ -222,7 +250,7 @@ yolo-label-recovery consensus primary_candidates.csv verifier_candidates.csv `
   --redact-paths
 ```
 
-Group perceptual near-duplicates without loading a model or changing source data:
+无需模型且不修改源数据，即可聚类感知近重复图片：
 
 ```powershell
 yolo-label-recovery cluster D:\data\mining-safety `
@@ -232,7 +260,7 @@ yolo-label-recovery cluster D:\data\mining-safety `
   --redact-paths
 ```
 
-Build a limited-budget, diversity-aware human review queue:
+生成有限预算、多样性感知的人工审核队列：
 
 ```powershell
 yolo-label-recovery prioritize D:\runs\candidates_review.csv D:\data\mining-safety `
@@ -241,7 +269,7 @@ yolo-label-recovery prioritize D:\runs\candidates_review.csv D:\data\mining-safe
   --redact-paths
 ```
 
-Build an exhaustive offline review bundle from Teacher candidate evidence:
+根据 Teacher 候选证据生成完整离线审核包：
 
 ```powershell
 python examples\create_review_fixture.py --output-dir .demo-review-fixture
@@ -251,14 +279,14 @@ yolo-label-recovery review-build .demo-review-fixture\dataset .demo-review-fixtu
   --redact-paths
 ```
 
-After every row has an explicit human decision, create a separate reviewed dataset:
+全部候选完成人工决策后，创建一个独立的审核后数据集：
 
 ```powershell
 yolo-label-recovery review-apply D:\data\mining-safety D:\runs\company-review\company_decisions.csv `
   --output-root D:\data\mining-safety-reviewed
 ```
 
-For GPU-assisted label recovery, first install the CUDA-compatible PyTorch build required by the target GPU, then install the inference extra:
+如需使用 GPU 自动补标，请先安装与目标 GPU/CUDA 兼容的 PyTorch，再安装推理依赖：
 
 ```powershell
 python -m pip install -e ".[inference]"
@@ -280,25 +308,25 @@ yolo-label-recovery run `
   --force
 ```
 
-Use `--dry-run` first. It generates statistics, CSV candidates and review images but does not write automatic additions. After checking the output, remove `--dry-run` and add `--materialize-dataset` if a trainable dataset is required.
+建议始终先使用 `--dry-run`。它会生成统计信息、候选 CSV 和复核图，但不会写入自动新增标签。检查结果后，移除 `--dry-run`；如需生成可直接训练的数据集，再增加 `--materialize-dataset`。
 
-Generate the visual quality report after a run:
+运行完成后生成可视化质量报告：
 
 ```powershell
 yolo-label-recovery report D:\data\autolabel_run_001
 ```
 
-Add `--redact-paths` when generating a report for GitHub or an interview portfolio. Real run manifests intentionally retain local dataset/model paths for reproducibility and should not be published without review.
+向 GitHub 或面试作品集发布报告时应增加 `--redact-paths`。真实运行的 manifest 为了复现会保留本地数据集和模型路径，未经检查不应直接公开。
 
-Resume an interrupted long-running scan with the original arguments, replacing `--force` with `--resume`:
+长时间扫描意外中断后，可以使用完全相同的原始参数，将 `--force` 替换为 `--resume`：
 
 ```powershell
-yolo-label-recovery run <same arguments> --resume
+yolo-label-recovery run <相同参数> --resume
 ```
 
-The checkpoint stores the committed image cursor and statistics after every successful batch. Candidate CSV and label writes are idempotent, so an interrupted batch can be retried without duplicating rows or labels.
+每个批次成功后，检查点会保存已提交的图片游标和统计信息。候选 CSV 与标签写入均具有幂等性，因此中断批次可以安全重试，不会产生重复记录或标签。
 
-## Expected dataset format
+## 数据集格式
 
 ```text
 dataset-root/
@@ -313,34 +341,34 @@ dataset-root/
     test/
 ```
 
-`data.yaml` must define `names` in the same order as the label class IDs. The tool validates the class names before scanning.
+`data.yaml` 必须按照标签类别 ID 的顺序定义 `names`。扫描前工具会校验类别名称。
 
-## Output format
+## 输出格式
 
 ```text
 out-root/
-  labels_autofill_v1/       # original labels plus AUTO additions
-  candidates_auto.csv       # high-confidence candidates
-  candidates_review.csv     # medium-confidence candidates
-  candidates_all.csv        # complete candidate audit stream
-  auto_samples/<class>/     # sampled AUTO images
-  review_images/<class>/    # sampled REVIEW images
+  labels_autofill_v1/       # 原标签加 AUTO 新增标签
+  candidates_auto.csv       # 高置信度候选
+  candidates_review.csv     # 中等置信度候选
+  candidates_all.csv        # 完整候选审计流
+  auto_samples/<class>/     # AUTO 分类抽样图
+  review_images/<class>/    # REVIEW 分类抽样图
   summary.json
   summary.txt
-  state.json                # atomic resume checkpoint
-  manifest.json             # arguments, inventory, packages, CUDA and GPU
-  report.html               # generated quality report
-  trainable_dataset/        # optional, created by --materialize-dataset
+  state.json                # 原子化断点续跑状态
+  manifest.json             # 参数、数据清单、依赖、CUDA 与 GPU
+  report.html               # 可视化质量报告
+  trainable_dataset/        # 可选，由 --materialize-dataset 生成
     data.yaml
     images/
     labels/
 ```
 
-The source label tree is never used as an output path. Delete the output directory to discard an experiment and rerun from the untouched source dataset.
+源标签目录绝不会被用作输出目录。如需撤销一次实验，只需删除输出目录，然后从未被修改的源数据重新运行。
 
-## Default thresholds
+## 默认阈值
 
-| Class | AUTO | REVIEW |
+| 类别 | AUTO | REVIEW |
 |---|---:|---:|
 | person | 0.75 | 0.55 |
 | helmet | 0.75 | 0.55 |
@@ -349,50 +377,56 @@ The source label tree is never used as an output path. Delete the output directo
 | slipper | 0.65 | 0.45 |
 | smoking | 0.65 | 0.40 |
 
-Override a class with `--threshold smoking:0.70:0.45`. The format is `class:auto_threshold:review_threshold`.
+使用 `--threshold smoking:0.70:0.45` 覆盖单个类别，格式为 `类别:AUTO阈值:REVIEW阈值`。
 
-## Resource model
+## 资源模型
 
-For `N` images and `K` single-class models, the compute work is approximately `K x N` image-model inferences. The implementation does not load all images or all models at once:
+对于 `N` 张图片和 `K` 个单类别模型，计算量约为 `K x N` 次图片-模型推理。实现不会一次加载所有图片或所有模型：
 
-- GPU: current model, current batch activations, current prediction tensors.
-- CPU RAM: image paths, current batch decode objects, current-class label cache, bounded review samples.
-- Disk: streamed CSV rows and the output label copy.
+- GPU 显存：当前模型、当前批次激活值、当前预测张量。
+- CPU 内存：图片路径、当前批次解码对象、当前类别标签缓存、有限数量的复核样本。
+- 磁盘：流式 CSV 记录和派生标签副本。
 
-With `--adaptive-batch`, the tool reports the failing class, split and batch size, discards the uncommitted current batch, and retries it at half the batch size. The current batch is committed to CSV and labels only after successful candidate generation. The summary and HTML report show initial/stable batch sizes and OOM retry counts.
+启用 `--adaptive-batch` 后，工具会记录发生 OOM 的类别、数据划分和批大小，丢弃尚未提交的当前批次，然后将批大小减半重试。只有成功生成候选后，当前批次才会提交到 CSV 和标签目录。汇总文件与 HTML 报告会显示初始/稳定批大小以及 OOM 重试次数。
 
-## Project status
+## 项目状态
 
-This repository is a cleaned engineering artifact, not a released benchmark. Real project images, annotation files, model weights, logs and machine-specific paths are intentionally excluded. Reproducible evaluation requires a user-provided YOLO dataset and single-class weights.
+该仓库是经过清理的工程作品，不是公开基准测试。真实项目图片、标注、模型权重、日志和机器路径均被有意排除。可复现实验需要用户自行提供 YOLO 数据集和单类别模型权重。
 
-See:
+延伸阅读：
 
-- [Architecture and workflow](docs/ARCHITECTURE.md)
-- [Memory and GPU design](docs/MEMORY_AND_GPU.md)
-- [Data governance](docs/DATA_GOVERNANCE.md)
-- [Threshold calibration](docs/CALIBRATION.md)
-- [Threshold calibration (Simplified Chinese)](docs/CALIBRATION.zh-CN.md)
-- [Cross-Teacher consensus](docs/CONSENSUS.md)
-- [Cross-Teacher consensus (Simplified Chinese)](docs/CONSENSUS.zh-CN.md)
-- [Perceptual near-duplicate grouping](docs/NEAR_DUPLICATES.md)
-- [Perceptual near-duplicate grouping (Simplified Chinese)](docs/NEAR_DUPLICATES.zh-CN.md)
-- [Active review prioritization](docs/ACTIVE_REVIEW.md)
-- [Active review prioritization (Simplified Chinese)](docs/ACTIVE_REVIEW.zh-CN.md)
-- [Exhaustive GT/AUTO human review](docs/HUMAN_REVIEW.md)
-- [Exhaustive GT/AUTO human review (Simplified Chinese)](docs/HUMAN_REVIEW.zh-CN.md)
-- [Production-scale validation](docs/PRODUCTION_VALIDATION.md)
-- [Production-scale validation (Simplified Chinese)](docs/PRODUCTION_VALIDATION.zh-CN.md)
-- [Interview presentation](docs/INTERVIEW_STORY.md)
-- [Portfolio and interview guide](docs/PORTFOLIO_GUIDE.md)
-- [Portfolio and interview guide (Simplified Chinese)](docs/PORTFOLIO_GUIDE.zh-CN.md)
-- [Detection model card template](docs/MODEL_CARD_TEMPLATE.md)
-- [Architecture decisions](docs/adr/0001-immutable-derived-labels.md)
-- [Roadmap](docs/ROADMAP.md)
-- [Contributing](CONTRIBUTING.md)
+- [中文文档总入口](docs/README.zh-CN.md)
+- [公开演示与验收指南](docs/REPRODUCIBLE_DEMO.zh-CN.md)
+- [核心代码导读](docs/CODE_WALKTHROUGH.zh-CN.md)
+- [项目证据与表述边界](docs/PROJECT_EVIDENCE.zh-CN.md)
+- [完整矿区系统设计](docs/MINING_SYSTEM_DESIGN.zh-CN.md)
+- [大厂面试高频追问](docs/INTERVIEW_QA.zh-CN.md)
+- [架构与工作流](docs/ARCHITECTURE.md)
+- [内存与显存设计](docs/MEMORY_AND_GPU.md)
+- [数据治理](docs/DATA_GOVERNANCE.md)
+- [阈值校准（中文）](docs/CALIBRATION.zh-CN.md)
+- [阈值校准（英文）](docs/CALIBRATION.md)
+- [跨 Teacher 一致性门控（中文）](docs/CONSENSUS.zh-CN.md)
+- [跨 Teacher 一致性门控（英文）](docs/CONSENSUS.md)
+- [感知近重复聚类（中文）](docs/NEAR_DUPLICATES.zh-CN.md)
+- [感知近重复聚类（英文）](docs/NEAR_DUPLICATES.md)
+- [主动审核优先级（中文）](docs/ACTIVE_REVIEW.zh-CN.md)
+- [主动审核优先级（英文）](docs/ACTIVE_REVIEW.md)
+- [GT/AUTO 全情况人工审核（中文）](docs/HUMAN_REVIEW.zh-CN.md)
+- [GT/AUTO 全情况人工审核（英文）](docs/HUMAN_REVIEW.md)
+- [生产规模验证（中文）](docs/PRODUCTION_VALIDATION.zh-CN.md)
+- [生产规模验证（英文）](docs/PRODUCTION_VALIDATION.md)
+- [面试项目讲解](docs/INTERVIEW_STORY.md)
+- [作品集与面试指南（中文）](docs/PORTFOLIO_GUIDE.zh-CN.md)
+- [作品集与面试指南（英文）](docs/PORTFOLIO_GUIDE.md)
+- [检测模型卡模板](docs/MODEL_CARD_TEMPLATE.md)
+- [架构决策记录](docs/adr/0001-immutable-derived-labels.md)
+- [路线图](docs/ROADMAP.md)
+- [贡献指南](CONTRIBUTING.md)
 
-## Verification
+## 验证
 
-The repository includes dependency-light smoke tests that do not require pytest:
+仓库包含不依赖 pytest 的轻量冒烟测试：
 
 ```powershell
 python -m py_compile autolabel_with_single_class_models.py
@@ -400,4 +434,4 @@ python tests\run_smoke_tests.py
 pytest
 ```
 
-For a complete development environment, use `python -m pip install -e ".[inference,dev]"`.
+完整开发环境可使用 `python -m pip install -e ".[inference,dev]"` 安装。

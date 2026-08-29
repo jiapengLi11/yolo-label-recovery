@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Reorganized the repository documentation around quick understanding, reproducible demos, code reading, evidence boundaries and interview preparation.
+- Added a full mining-safety system design that clearly separates implemented label-governance capabilities from planned RTSP, RAG and Agent evolution.
+- Added a Chinese core-code walkthrough, reproducible no-GPU acceptance guide, project-evidence matrix and high-frequency interview Q&A.
+- Added repository-local Markdown link validation to CI plus structured bug, feature and pull-request templates.
+- Expanded the project development and interview handbook with a GitHub-to-code learning route, failure-injection labs and evidence-based presentation guidance.
+
 ## 1.1.0
 
 - Added a Spring Boot 4, Vue 3 and MySQL collaboration platform for multi-user human review.

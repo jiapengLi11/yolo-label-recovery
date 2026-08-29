@@ -14,9 +14,12 @@ Thanks for helping improve the project.
 
 ```powershell
 python -m py_compile autolabel_with_single_class_models.py
-ruff check autolabel_with_single_class_models.py yolo_label_recovery tests examples
+python scripts\validate_docs.py
+ruff check autolabel_with_single_class_models.py yolo_label_recovery tests examples scripts platform\tools
 python tests\run_smoke_tests.py
-pytest  # optional, if pytest is installed
+pytest
 ```
 
 Before submitting a change, run a dry-run on a tiny synthetic dataset and inspect `summary.txt`, CSV files and at least one review image per class.
+
+Changes under `platform/backend` must pass `mvn test`. Changes under `platform/frontend` must pass `npm ci` and `npm run build`. Behavior changes should update the relevant public fixture, documentation entry and `CHANGELOG.md`.

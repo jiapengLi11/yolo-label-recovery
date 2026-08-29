@@ -49,6 +49,8 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 ignore = ["E501"] # Embedded HTML/CSS templates are intentionally kept readable as complete lines.
 
 [tool.ruff.lint.per-file-ignores]
+"docs/build_mining_blog_docx.py" = ["RUF001"] # Chinese publication content intentionally uses CJK punctuation.
+"docs/build_project_handbook.py" = ["RUF001"] # Chinese handbook content intentionally uses CJK punctuation.
 "tests/run_smoke_tests.py" = ["E402"]
 "yolo_label_recovery/review.py" = ["RUF001"] # Chinese offline-review instructions intentionally use CJK punctuation.
 "yolo_label_recovery/review_gui.py" = ["RUF001"] # Chinese reviewer localization intentionally uses CJK punctuation.
