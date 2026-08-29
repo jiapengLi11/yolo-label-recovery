@@ -8,9 +8,11 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
+import java.util.List;
 
 public final class ApiDtos {
 
@@ -30,7 +32,8 @@ public final class ApiDtos {
             @NotBlank @Size(max = 64) String username,
             @NotBlank @Size(min = 12, max = 128) String password,
             @NotBlank @Size(max = 100) String displayName,
-            @NotNull UserRole role) {
+            @NotNull UserRole role,
+            List<@Positive Long> projectIds) {
     }
 
     public record CreateProjectRequest(
@@ -104,6 +107,38 @@ public final class ApiDtos {
             String claimedBy,
             Instant leaseUntil,
             String visualUrl) {
+    }
+
+    public record ImageCandidateView(
+            Long id,
+            long version,
+            String candidateId,
+            String className,
+            double confidence,
+            String caseCode,
+            String recommendedAction,
+            TaskState state,
+            String claimedBy,
+            DecisionType decision,
+            String decisionBy,
+            String decisionComment) {
+    }
+
+    public record RecentDecisionView(
+            Long taskId,
+            long version,
+            Long projectId,
+            String candidateId,
+            String split,
+            String imageName,
+            String className,
+            double confidence,
+            String caseCode,
+            String recommendedAction,
+            TaskState state,
+            DecisionType decision,
+            String comment,
+            Instant decidedAt) {
     }
 
     public record DecisionRequest(

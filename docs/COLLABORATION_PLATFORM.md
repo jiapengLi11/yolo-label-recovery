@@ -66,7 +66,13 @@ Authentication and authorization are separate.
 
 ### Renewable lease / 可续租任务
 
-A claim is not permanent. It records `claimed_by` and `lease_until`; the browser sends a heartbeat every 60 seconds. Closing the browser stops renewal, so the task becomes claimable after the configured lease period. A reviewer must release or finish the active task before switching projects.
+A claim is not permanent. It records `claimed_by` and `lease_until`; the browser sends a heartbeat every 30 seconds and renders the remaining lease, renewal state and browser network state. Closing the browser stops renewal, so the task becomes claimable after the configured lease period. A reviewer must release or finish the active task before switching projects.
+
+### One-click throughput and audited correction / 一键审核与审计式纠错
+
+The high-frequency path intentionally uses one-click decisions: a valid action is persisted immediately, then the client claims the next pending candidate in the same image or advances to the next image. Reviewers do not pay a second confirmation click for every box. Completed decisions remain recoverable through a reviewer-scoped recent list. The original reviewer or an administrator may reopen and revise them with the current optimistic version, and every revision produces an audit event.
+
+高频主流程采用“一键决定并自动前进”：合法动作立即写入服务端，优先进入本图下一框，本图完成后进入下一图，不为每个框增加二次确认成本。已完成决定仍可通过“我的最近审核”找回；原审核人或管理员使用最新乐观版本进行改判，并为每次修订生成审计事件。
 
 ### Optimistic version / 乐观版本
 
@@ -172,12 +178,15 @@ See [campus-deploy/README.md](../platform/campus-deploy/README.md). Local passwo
 | POST | `/api/tasks/claim-next?projectId={id}` | Atomically lease one task |
 | POST | `/api/tasks/{id}/heartbeat` | Renew current user's lease |
 | POST | `/api/tasks/{id}/decision` | Submit constrained decision and expected version |
+| PUT | `/api/tasks/{id}/decision` | Revise an owned/admin decision with expected version |
+| GET | `/api/tasks/recent?projectId={id}` | Current reviewer's recent decisions in one project |
+| GET | `/api/tasks/{id}/image-candidates` | All candidate boxes grouped by source image |
 | GET | `/api/tasks/{id}/visual` | Read an authorized real review image |
 | GET | `/api/projects/{id}/audit` | Read project audit trail, admin/auditor |
 
 ## 11. Reproduce documentation screenshots / 重建文档截图
 
-The screenshot tool uses Chrome DevTools directly and adds no browser-automation dependency to the application. Credentials are supplied only through process environment variables; the script waits for animations and images, captures four pages, and releases the temporary claimed task.
+The screenshot tool uses Chrome DevTools directly and adds no browser-automation dependency to the application. Credentials are supplied only through process environment variables; the script waits for animations and images, captures login/dashboard/admin/review/productivity states, and releases the temporary claimed task.
 
 截图脚本直接调用 Chrome DevTools，不给业务项目增加浏览器自动化依赖。账号密码只通过当前进程环境变量传入；脚本会等待动画和图片稳定，拍摄四个页面，并释放临时领取的任务。
 
@@ -192,11 +201,17 @@ node platform\tools\capture_platform_screenshots.mjs docs\assets
 
 1. Start from the data problem: incomplete labels make true objects become false background supervision.
 2. Explain why offline inference and online review are separated: GPU jobs are expensive and bursty; human review is concurrent and stateful.
-3. Draw the claim transaction and lease timeline; emphasize pessimistic locking for allocation and optimistic locking for stale clients.
+3. Draw the claim transaction and lease timeline; emphasize pessimistic locking for allocation, visible heartbeat recovery and optimistic locking for stale clients.
 4. Explain dual authorization: RBAC handles capability while project membership handles data scope.
 5. Show bounded idempotent import and read-only visual mounts as memory-safety and data-safety decisions.
 6. Close with evidence: `30,183` imported candidates, `4,465` migrated decisions, two-account concurrent validation, real screenshots, automated Java/Python tests and two reproducible deployment modes.
 
 ## 13. Production hardening / 生产加固
+
+### Query-path indexes / 查询路径索引
+
+Flyway `V2__review_productivity_indexes.sql` adds indexes that match user-visible access paths: `(project_id, split, image_name, id)` supports the image-grouped left rail, while `(reviewer_id, decided_at, id)` supports deterministic newest-first recent decisions. The migration has been validated against MySQL 8.4; Hibernate validates the resulting schema instead of mutating it at runtime.
+
+索引来自真实交互路径：按图聚合列表需要快速定位同项目、同划分、同图片的候选；最近审核需要按审核人和决定时间倒序读取。迁移由 Flyway 版本化执行，生产环境不依赖 Hibernate 自动改表。
 
 Before exposing the service beyond a trusted LAN, terminate TLS at a reverse proxy, rotate JWT/database secrets, disable bootstrap admin after first setup, back up MySQL, centralize logs and metrics, and define account disable/password-reset procedures. Docker Compose is an auditable single-host baseline; Kubernetes or managed databases are deployment choices, not prerequisites for the core workflow.

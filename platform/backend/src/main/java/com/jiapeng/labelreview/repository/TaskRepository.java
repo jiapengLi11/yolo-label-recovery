@@ -46,6 +46,8 @@ public interface TaskRepository extends JpaRepository<ReviewTask, Long> {
 
     Optional<ReviewTask> findFirstByClaimedByUsernameAndStateOrderByUpdatedAtDesc(String username, TaskState state);
 
+    List<ReviewTask> findByProjectIdAndSplitAndImageNameOrderById(Long projectId, String split, String imageName);
+
     long countByProjectId(Long projectId);
 
     long countByProjectIdAndState(Long projectId, TaskState state);

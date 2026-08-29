@@ -54,7 +54,7 @@ if ($dbHost -and -not (Test-TcpPort $dbHost $dbPort)) {
     }
     Write-Output "数据库未运行，正在启动 Ubuntu 虚拟机..."
     $vmProcess = Start-Process -FilePath $vmRun `
-        -ArgumentList @("start", $vmx, "nogui") `
+        -ArgumentList @("-T", "ws", "start", ('"{0}"' -f $vmx), "nogui") `
         -WindowStyle Hidden `
         -Wait `
         -PassThru

@@ -38,7 +38,7 @@ public class ReviewDecision {
     @Column(nullable = false, length = 1000)
     private String comment;
 
-    @Column(name = "decided_at", nullable = false, updatable = false)
+    @Column(name = "decided_at", nullable = false)
     private Instant decidedAt = Instant.now();
 
     protected ReviewDecision() {
@@ -73,5 +73,11 @@ public class ReviewDecision {
 
     public Instant getDecidedAt() {
         return decidedAt;
+    }
+
+    public void revise(DecisionType decision, String comment) {
+        this.decision = decision;
+        this.comment = comment;
+        this.decidedAt = Instant.now();
     }
 }

@@ -1,6 +1,8 @@
 package com.jiapeng.labelreview.service;
 
 import com.jiapeng.labelreview.api.ApiDtos.DecisionRequest;
+import com.jiapeng.labelreview.api.ApiDtos.ImageCandidateView;
+import com.jiapeng.labelreview.api.ApiDtos.RecentDecisionView;
 import com.jiapeng.labelreview.api.ApiDtos.TaskView;
 import com.jiapeng.labelreview.config.ReviewProperties;
 import com.jiapeng.labelreview.domain.AppUser;
@@ -22,7 +24,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -78,6 +84,75 @@ public class TaskService {
     }
 
     @Transactional
+    public TaskView claim(Long taskId, AppUser reviewer) {
+        Instant now = Instant.now();
+        Optional<ReviewTask> current = tasks.findFirstByClaimedByUsernameAndStateOrderByUpdatedAtDesc(
+                reviewer.getUsername(),
+                TaskState.CLAIMED);
+        if (current.isPresent() && current.get().getLeaseUntil() != null && current.get().getLeaseUntil().isAfter(now)) {
+            if (current.get().getId().equals(taskId)) {
+                return view(current.get());
+            }
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Release the active task before claiming another candidate");
+        }
+
+        ReviewTask task = tasks.findByIdForUpdate(taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
+        projects.requireAccess(task.getProject().getId(), reviewer);
+        boolean expiredClaim = task.getState() == TaskState.CLAIMED
+                && task.getLeaseUntil() != null
+                && !task.getLeaseUntil().isAfter(now);
+        if (task.getState() != TaskState.PENDING && !expiredClaim) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Candidate is no longer available");
+        }
+        task.claim(reviewer, leaseDeadline(now));
+        tasks.flush();
+        audit.record(
+                reviewer.getUsername(),
+                "TASK_CLAIMED_FROM_IMAGE",
+                "PROJECT",
+                task.getProject().getId(),
+                "task=" + task.getId() + ",candidate=" + task.getCandidateId());
+        return view(task);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ImageCandidateView> imageCandidates(Long taskId, AppUser actor) {
+        ReviewTask anchor = tasks.findById(taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
+        projects.requireAccess(anchor.getProject().getId(), actor);
+        List<ReviewTask> siblings = tasks.findByProjectIdAndSplitAndImageNameOrderById(
+                anchor.getProject().getId(),
+                anchor.getSplit(),
+                anchor.getImageName());
+        Map<Long, ReviewDecision> decisionByTask = decisions.findByTaskIdIn(
+                        siblings.stream().map(ReviewTask::getId).toList())
+                .stream()
+                .collect(Collectors.toMap(decision -> decision.getTask().getId(), Function.identity()));
+        return siblings.stream()
+                .map(task -> imageCandidateView(task, decisionByTask.get(task.getId())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public TaskView task(Long taskId, AppUser actor) {
+        ReviewTask task = tasks.findById(taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
+        projects.requireAccess(task.getProject().getId(), actor);
+        return view(task);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecentDecisionView> recentDecisions(Long projectId, int limit, AppUser actor) {
+        projects.requireAccess(projectId, actor);
+        int safeLimit = Math.max(1, Math.min(limit, 50));
+        return decisions.findRecentByReviewerAndProject(actor.getId(), projectId, PageRequest.of(0, safeLimit))
+                .stream()
+                .map(TaskService::recentDecisionView)
+                .toList();
+    }
+
+    @Transactional
     public TaskView heartbeat(Long taskId, AppUser reviewer) {
         ReviewTask task = requireOwnedTask(taskId, reviewer, true);
         task.extendLease(leaseDeadline(Instant.now()));
@@ -121,6 +196,42 @@ public class TaskService {
                 "PROJECT",
                 task.getProject().getId(),
                 "task=" + task.getId() + ",decision=" + request.decision());
+        return view(task);
+    }
+
+    @Transactional
+    public TaskView reviseDecision(Long taskId, DecisionRequest request, AppUser actor) {
+        ReviewTask task = tasks.findByIdForUpdate(taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
+        projects.requireAccess(task.getProject().getId(), actor);
+        if (!request.expectedVersion().equals(task.getVersion())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Task changed; refresh before revising");
+        }
+        if (task.getState() != TaskState.COMPLETED && task.getState() != TaskState.ESCALATED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Only a completed decision can be revised");
+        }
+        ReviewDecision decision = decisions.findByTaskId(taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Decision not found"));
+        boolean ownsDecision = decision.getReviewer().getId().equals(actor.getId());
+        if (!ownsDecision && actor.getRole() != com.jiapeng.labelreview.domain.UserRole.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the original reviewer or an administrator can revise this decision");
+        }
+        if (!DecisionPolicy.isAllowed(task.getRecommendedAction(), request.decision())) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Decision " + request.decision() + " is not allowed for " + task.getRecommendedAction());
+        }
+        DecisionType previous = decision.getDecision();
+        String comment = request.comment() == null ? "" : request.comment().trim();
+        decision.revise(request.decision(), comment);
+        task.complete(request.decision() == DecisionType.UNCERTAIN);
+        tasks.flush();
+        audit.record(
+                actor.getUsername(),
+                "TASK_DECISION_REVISED",
+                "PROJECT",
+                task.getProject().getId(),
+                "task=" + task.getId() + ",from=" + previous + ",to=" + request.decision());
         return view(task);
     }
 
@@ -175,5 +286,40 @@ public class TaskService {
                 task.getClaimedBy() == null ? null : task.getClaimedBy().getUsername(),
                 task.getLeaseUntil(),
                 "/api/tasks/" + task.getId() + "/visual");
+    }
+
+    private static ImageCandidateView imageCandidateView(ReviewTask task, ReviewDecision decision) {
+        return new ImageCandidateView(
+                task.getId(),
+                task.getVersion(),
+                task.getCandidateId(),
+                task.getClassName(),
+                task.getConfidence(),
+                task.getCaseCode(),
+                task.getRecommendedAction(),
+                task.getState(),
+                task.getClaimedBy() == null ? null : task.getClaimedBy().getUsername(),
+                decision == null ? null : decision.getDecision(),
+                decision == null ? null : decision.getReviewer().getUsername(),
+                decision == null ? null : decision.getComment());
+    }
+
+    private static RecentDecisionView recentDecisionView(ReviewDecision decision) {
+        ReviewTask task = decision.getTask();
+        return new RecentDecisionView(
+                task.getId(),
+                task.getVersion(),
+                task.getProject().getId(),
+                task.getCandidateId(),
+                task.getSplit(),
+                task.getImageName(),
+                task.getClassName(),
+                task.getConfidence(),
+                task.getCaseCode(),
+                task.getRecommendedAction(),
+                task.getState(),
+                decision.getDecision(),
+                decision.getComment(),
+                decision.getDecidedAt());
     }
 }

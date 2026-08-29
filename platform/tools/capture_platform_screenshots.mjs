@@ -179,6 +179,15 @@ async function main() {
     await evaluate(client, 'scrollTo(0, 0)')
     await screenshot(client, 'platform-review.png')
 
+    const canOpenRecent = await evaluate(client, "Boolean(document.querySelector('.recent-toggle'))")
+    if (canOpenRecent) {
+      await evaluate(client, `document.querySelector('.recent-toggle').click()`)
+      await waitFor(client, "document.querySelector('.recent-drawer')")
+      await settle(300)
+      await screenshot(client, 'platform-review-productivity.png')
+      await evaluate(client, `document.querySelector('.recent-toggle').click()`)
+    }
+
     const canRelease = await evaluate(client, "Boolean(document.querySelector('.release'))")
     if (canRelease) {
       await evaluate(client, `document.querySelector('.release').click()`)
