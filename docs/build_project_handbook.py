@@ -132,6 +132,13 @@ def set_repeat_header(row):
     tr_pr.append(header)
 
 
+def set_row_cant_split(row):
+    tr_pr = row._tr.get_or_add_trPr()
+    cant_split = OxmlElement("w:cantSplit")
+    cant_split.set(qn("w:val"), "true")
+    tr_pr.append(cant_split)
+
+
 def keep_with_next(paragraph):
     paragraph.paragraph_format.keep_with_next = True
 
@@ -349,6 +356,7 @@ def add_table(doc: Document, headers: list[str], rows: list[list[str]], widths: 
     set_table_geometry(table, widths)
     hdr = table.rows[0]
     set_repeat_header(hdr)
+    set_row_cant_split(hdr)
     for i, text in enumerate(headers):
         cell = hdr.cells[i]
         shade(cell._tc, NAVY)
@@ -358,7 +366,9 @@ def add_table(doc: Document, headers: list[str], rows: list[list[str]], widths: 
         r = p.add_run(text)
         set_run_font(r, "Microsoft YaHei", 9, WHITE, bold=True)
     for row_values in rows:
-        cells = table.add_row().cells
+        row = table.add_row()
+        set_row_cant_split(row)
+        cells = row.cells
         for i, value in enumerate(row_values):
             cell = cells[i]
             cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
@@ -1737,25 +1747,126 @@ def build_document(output_path: Path = OUT):
     ])
     add_callout(doc, "STAR 收束", "Situation：多源六类数据联合场景漏标。Task：降低人工成本且不污染原标签。Action：六 Teacher、几何分流、流式推理、多人审核、事务与审计。Result：形成可运行、可追溯、可继续评测的数据闭环；模型收益仍以固定测试集和现场专项集为准。", "tip")
 
-    chapter(doc, "36", "把 GitHub 变成面向国际面试官的工程作品集", "让面试官在 30 秒、5 分钟、15 分钟和 30 分钟四种停留时间内都能看到完整证据。")
-    add_paragraph(doc, "大厂面试官通常不会从仓库第一行读到最后一行。首页必须先回答：解决什么真实问题、最难的工程矛盾是什么、有哪些真实运行证据、如何在没有私有数据和 GPU 的情况下复现、哪些能力仍是下一阶段设计。当前仓库使用英文作为 GitHub 默认首页，降低国际面试官的阅读门槛；中文长版、代码导读和学习手册则负责承载更深入的原理、实验与面试复盘。")
+    chapter(doc, "36", "从头到尾讲解 GitHub 工程作品集", "按 README 的真实阅读顺序理解每一段文字、每一张图、每一种证据及其面试用途。")
+    add_paragraph(doc, "大厂面试官通常不会从仓库第一行读到最后一行。首页必须先回答：解决什么真实问题、最难的工程矛盾是什么、有哪些真实运行证据、如何在没有私有数据和 GPU 的情况下复现、哪些能力仍是下一阶段设计。当前仓库使用英文作为 GitHub 默认首页，降低国际面试官的阅读门槛；中文长版、代码导读和本手册则负责承载更深入的原理、实验与面试复盘。")
     add_table(doc, ["停留时间", "首页应提供的证据", "面试官形成的判断"], [
         ["30 秒", "一句话价值、技术栈、真实审核界面", "不是孤立脚本，而是完整工程作品"],
-        ["5 分钟", "证据矩阵、完成度边界、生产规模数字", "知道你没有把规划冒充落地"],
+        ["5 分钟", "完整链路、预生成报告、生产规模数字", "既有算法，也有系统与质量治理"],
         ["15 分钟", "无 GPU 演示、预期输出和失败验收", "第三方能够复现关键机制"],
         ["30 分钟", "核心代码导读、事务时序和数据不变量", "能够接受后端、算法和系统设计深挖"],
     ], [1500, 3900, 3960])
-    add_picture(doc, ROOT / "docs" / "assets" / "platform-review-multibox.png", 6.65, "图 16  GitHub 首页使用的真实多人审核工作台", "真实地下场景、五个同图候选、一键决策、租约、快捷键和释放任务入口")
-    add_paragraph(doc, "文档中心按目标而非文件名组织：快速理解、公开复现、核心代码、协作平台、证据边界、完整矿区系统和面试问答。这样首页负责导航，专题文档负责深度，学习手册负责把知识、代码和实验连接起来。")
+
+    doc.add_heading("36.1 首页开场：名称、定位、徽章与主视觉", level=2)
+    add_paragraph(doc, "README 顶部先给出项目名 YOLO Label Recovery，再用一句英文明确产品边界：这是一个安全、可审计、内存友好的 Multi-Teacher 漏标恢复与人工审核平台，而不是一个只会调用 YOLO predict 的脚本。Python、Spring Boot、Vue、CI、Release 和 MIT 徽章分别对应算法流水线、多人后端、审核前端、持续集成、可交付版本和开源许可。徽章的意义是快速建立技术栈和工程成熟度预期，不是装饰。")
+    add_picture(doc, ROOT / "docs" / "assets" / "platform-review-multibox.png", 6.65, "图 16  GitHub 首页主视觉：真实五候选多人审核工作台", "真实地下场景中按图聚合三个人员、一个背心和一个拖拉机候选；同时展示候选列表、租约、置信度、决策动作、快捷键与释放任务入口")
+    add_callout(doc, "这张主图应该怎么看", "先看左侧：同一图片的五个候选被聚合而不是拆成五个页面；再看中间：审核员始终保留完整场景语义；最后看右侧：候选证据、租约、三种受约束决策和快捷键全部可见。它证明产品形态真实存在，但不能用来证明模型精度或高并发能力。", "info")
+    add_callout(doc, "30 秒讲法", "这是我们为矿区六类检测数据构建的漏标恢复平台。模型只产生候选，规则解释 GT 与 AUTO 的关系，人工最终授权；Web 平台再用账号、原子领单、租约、版本和审计保证多人审核不会互相覆盖。", "tip")
+
+    doc.add_heading("36.2 Pre-generated showcase：为什么没有 GPU 也能验收", level=2)
+    add_paragraph(doc, "主视觉之后进入预生成展示区。这里的分析报告来自仓库内置的合成 fixture，目的是让任何面试官无需私有图片、模型权重和 GPU，也能复现输入契约、状态分类、阈值策略、资源恢复和安全写回。真实审核界面则使用经许可的生产审核样例。两者共同证明工具行为，但都不能冒充新模型的固定测试集精度。")
+
+    doc.add_heading("36.2.1 Model-free dataset audit：先证明数据能安全进入流水线", level=3)
+    add_picture(doc, ROOT / "docs" / "assets" / "audit-preview.png", 6.35, "图 17  无模型数据集审计报告", "合成数据主动注入非法类别、孤立标签和 train/val 跨划分重复，报告必须返回 FAIL 才算验收成功")
+    add_paragraph(doc, "这张图回答的是‘输入数据是否可信’，而不是‘模型是否准确’。审计会检查图片/标签配对、类别 ID、坐标合法性、损坏文件、空标签、精确哈希重复和跨划分泄漏。公开 fixture 的预期结果是 FAIL、两个严重问题、一个警告和一组跨划分重复。故意失败代表审计器抓住了注入缺陷；如果错误返回 PASS，才说明实现有问题。")
+    add_callout(doc, "面试追问", "为什么训练前必须做哈希和跨划分检查？因为相同图片同时进入 train 与 val 会造成数据泄漏，让验证指标虚高；错误标签则会把数据问题伪装成模型或超参数问题。", "info")
+
+    doc.add_heading("36.2.2 Multi-Teacher recovery report：证明全量扫描可执行、可恢复", level=3)
+    add_picture(doc, ROOT / "docs" / "assets" / "report-preview.png", 6.35, "图 18  Multi-Teacher 漏标恢复质量报告", "集中展示图片-模型扫描次数、分类别候选、AUTO/REVIEW、稳定 Batch、OOM 重试和源标签只读状态")
+    add_paragraph(doc, "报告中的 image-model scans 不是图片数，而是图片数量乘以 Teacher 数量。它同时记录每个模型最终稳定 Batch 和模拟 OOM 重试，说明实现采用单模型串行加载、流式图片读取和批次级提交，而不是把六个模型和全部图片一次塞进显存或内存。Source labels modified = No 是关键不变量：扫描只生成证据和派生结果，不覆盖原始标签。")
+
+    doc.add_heading("36.2.3 Audited threshold calibration：阈值来自审核证据", level=3)
+    add_picture(doc, ROOT / "docs" / "assets" / "calibration-preview.png", 6.35, "图 19  分类别阈值校准报告", "使用六类共 2,400 条已审核候选估计 AUTO 精度下限和 REVIEW 召回覆盖，不使用一个全局阈值")
+    add_paragraph(doc, "横向比较六个类别可以看到阈值并不相同：tractor 的 AUTO 阈值可以较低，而 smoking 需要更保守。AUTO 不只看样本精度点估计，而要求 95% Wilson 置信下限达到目标精度；REVIEW 阈值则优先保留足够多的审核正样本。这样做把‘我觉得 0.7 可以’升级为由历史审核数据支持、可复算的策略。")
+    add_callout(doc, "不能夸大", "校准报告只对当前审核样本分布有效。数据域、模型版本或类别定义变化后必须重新抽样校准，置信度也不等于真实概率。", "warn")
+
+    doc.add_heading("36.2.4 Cross-Teacher consensus：高置信还要独立证据", level=3)
+    add_picture(doc, ROOT / "docs" / "assets" / "consensus-preview.png", 6.35, "图 20  跨 Teacher 一致性门控报告", "主 Teacher 的 AUTO 候选需要独立验证 Teacher 在空间上提供一对一支持，否则降级到 REVIEW")
+    add_paragraph(doc, "主模型和验证模型分别产生候选后，系统按类别与空间关系做一对一匹配。公开 fixture 中 72 个主 AUTO 只有 48 个获得支持并保留 AUTO，其余 24 个降级人工复核。这个阶段处理已经落盘的候选证据，不会同时加载两套模型，因此不增加推理显存峰值。它降低单模型确认偏差，但不能保证两个模型不会犯同一种错误。")
+
+    doc.add_heading("36.2.5 Perceptual near-duplicate groups：减少重复审核与数据泄漏", level=3)
+    add_picture(doc, ROOT / "docs" / "assets" / "near-duplicates-preview.png", 6.35, "图 21  感知近重复分组报告", "聚合缩放、JPEG 重压缩和亮度变化版本，同时避免把纯黑、纯白等低纹理图片错误合并")
+    add_paragraph(doc, "全局文件哈希只能发现字节完全相同的图片，感知哈希则用于发现视觉内容近似的版本。报告把七张图片归为三组，只需优先审核三个代表图，并标记跨 train/val/test 的近重复组。它既降低连续帧造成的审核浪费，也为重新划分数据提供泄漏证据。最终是否批量继承决定仍需检查组内一致性，不能仅凭相似就自动复制标签。")
+
+    doc.add_heading("36.2.6 Diversity-aware active review：有限人力先看什么", level=3)
+    add_picture(doc, ROOT / "docs" / "assets" / "prioritization-preview.png", 6.35, "图 22  多样性感知主动审核排序报告", "在有限审核预算下同时考虑类别稀缺、候选风险和感知多样性，避免 person 淹没 smoking 等小类")
+    add_paragraph(doc, "候选达到几万条时，CSV 原始顺序没有业务意义。优先级模块先保证六个类别都能进入队列前部，再利用动态稀缺度照顾小类，并用感知距离抑制重复场景。公开 fixture 中预算 12 覆盖全部六类，前六个位置每类各一个。它优化的是审核资源分配，不改变候选真假，也不代替人工决定。")
+
+    doc.add_heading("36.2.7 Exhaustive GT/AUTO gate：决定候选为什么需要人看", level=3)
+    add_picture(doc, ROOT / "docs" / "assets" / "review-gate-preview.jpg", 5.9, "图 23  GT/AUTO 多几何关系审核图", "联合 IoU、IoS、归一化中心距离和面积比区分已标、包含、同目标尺度歧义、独立漏标、模型重复和跨类别冲突")
+    add_paragraph(doc, "这张图是候选进入审核平台前最关键的解释层。GT0_AUTO0、GT1_AUTO0、GT0_AUTO1、GT1_AUTO1 枚举图片/类别的四种基础状态；IoU 衡量整体重叠，IoS 识别小框被大框包含，归一化中心距离判断中心是否接近，面积比识别同中心但尺度悬殊。再结合模型内部重复与跨类别冲突，系统生成关系、推荐动作和允许动作。高置信只影响证据强度，不能越过人工授权直接写标签。")
+    add_table(doc, ["关系", "图中含义", "处理原则"], [
+        ["确认已标 / 包含式已标", "AUTO 与同类 GT 对应同一目标", "忽略新增，避免重复框"],
+        ["同目标歧义 / 包含式歧义", "中心接近但框尺度或边界差异大", "允许替换、保留或拒绝，由人工判断"],
+        ["独立漏标", "AUTO 与现有同类 GT 空间上是另一个目标", "进入补标签审核"],
+        ["模型内部重复", "多个 AUTO 指向同一目标", "只保留一个候选或人工去重"],
+        ["跨类别冲突", "与其他类别高度重叠且不符合合理嵌套", "升级复核，不自动写入"],
+    ], [2100, 4100, 3160])
+
+    doc.add_heading("36.3 两代审核工具：从离线交付到多人协作", level=2)
+    add_paragraph(doc, "README 接下来展示两代审核产品。旧版 Tk 桌面工具没有被淘汰，它仍适合单人、离线、拷贝即用的交付；Web 平台解决的是多人登录、原子领单、租约恢复、项目隔离、版本冲突与审计追踪。保留两代截图能够说明需求如何推动架构演进。")
+    add_picture(doc, ROOT / "docs" / "assets" / "grouped-review-preview.png", 6.25, "图 24  旧版 Tk 按图片聚合审核器", "左侧列出本图全部候选，中心显示真实审核图，按钮受决策策略约束；支持中英文、快捷键、JSONL 日志、原子 CSV 检查点和崩溃续审")
+    add_picture(doc, ROOT / "docs" / "assets" / "grouped-review-joint-scene.jpg", 5.9, "图 25  桌面审核器真实联合场景", "同一人物相关的多个类别候选必须放回完整场景判断，不能逐框脱离上下文审核")
+    add_picture(doc, ROOT / "docs" / "assets" / "grouped-review-multibox-scene.jpg", 5.9, "图 26  桌面审核器真实多框矿区场景", "一张矿区图片中存在多个候选，按图聚合减少重复加载并帮助识别跨类别关系")
+    add_paragraph(doc, "桌面端已经解决了按图聚合、动作约束、自动保存与恢复，但多人共享 CSV 会出现重复领取、最后写入覆盖、账号责任不清和跨项目数据暴露。因此下一张截图不是单纯把 Tk 改成网页，而是把协作一致性提升为服务端事务。")
+    add_picture(doc, ROOT / "docs" / "assets" / "platform-login.png", 6.25, "图 27  Web 平台真实登录入口", "JWT 认证建立用户身份；ADMIN、REVIEWER、AUDITOR 角色决定全局能力，项目成员关系进一步限制可访问的数据范围")
+    add_picture(doc, ROOT / "docs" / "assets" / "platform-dashboard.png", 6.25, "图 28  Web 平台真实项目看板", "展示生产规模任务总量、待审核、占用、疑难升级和完成率；这些数字证明导入与协作流程规模，不代表模型精度")
+    add_picture(doc, ROOT / "docs" / "assets" / "platform-admin.png", 6.25, "图 29  Web 平台账号与项目成员管理", "管理员创建账号、分配角色并授权项目；只有创建账号而不加入项目，审核员仍无法领取该项目任务")
+    add_callout(doc, "Web 并发主线", "claim-next 在数据库事务中使用悲观写锁领取任务；浏览器周期性续租，断开后租约过期可重新领取；提交决定携带乐观版本，旧页面返回 409 而不是覆盖新状态；每次领取、决定、纠错和释放都写审计事件。", "info")
+    add_callout(doc, "真实验证边界", "平台已用两个独立账号在可信校园网完成同时审核，并导入 30,183 条任务、迁移 4,465 条历史决定。这证明任务分配、迁移和审计闭环可运行，但不能称为互联网级高并发压测。", "warn")
+
+    doc.add_heading("36.4 Production-scale validation：真实数字应该如何解释", level=2)
+    add_paragraph(doc, "README 的生产规模汇总使用脱敏 SVG，核心数字是 29,071 张私有六类图片、六个单类别 Teacher、174,426 次 image-model passes、99,696 条候选证据、30,183 条人工审核任务和 0 次渲染失败。它证明流水线能够完成真实规模扫描与审核包生成，且源标签未被修改；它不公开私有图片、权重和机器路径，也不声明候选都正确。")
+    add_table(doc, ["生产证据", "能证明什么", "不能证明什么"], [
+        ["174,426 次 image-model passes", "六 Teacher 完成全量串行扫描", "六模型同时驻留显存"],
+        ["99,696 条候选证据", "关系分类与审计流有真实规模输入", "99,696 个都应补标"],
+        ["30,183 条审核任务", "审核门控和平台导入可工作", "平台已经过高并发压测"],
+        ["0 次渲染失败", "审核可视化产物完整", "模型没有误检和漏检"],
+        ["源标签未修改", "实验可回滚、证据链可追溯", "派生标签无需人工验收"],
+    ], [2500, 3900, 2860])
+
+    doc.add_heading("36.5 Why、Architecture、Properties：从业务问题走到工程约束", level=2)
+    add_paragraph(doc, "Why this project exists 用 person + helmet + smoking、person + slipper 等联合场景解释错误负监督：图片里真实存在目标却没有标签时，训练器会把它当背景。随后 Mermaid 流程图从只读数据集开始，依次经过审计、单 Teacher 加载、流式 FP16 推理、同类 GT 匹配、分类别置信路由、可选共识、GT/AUTO 审核门控、人工决定和派生数据集。这个顺序对应真实代码和数据状态，而不是理想化架构图。")
+    add_bullets(doc, [
+        "Immutable source：原标签目录永远不是输出目录，失败实验可以删除派生目录重来。",
+        "One Teacher at a time：显存只保留当前模型与当前 Batch，六个模型不会同时常驻。",
+        "Streaming and bounded memory：图片按批读取，候选按行落盘，复核图数量有上限。",
+        "Adaptive Batch：OOM 时丢弃未提交批次、Batch 减半重试，成功后才推进检查点。",
+        "Idempotent resume：run signature 防止错误参数续跑，candidate_id 和标签写入避免重复。",
+        "Human authorization：AUTO 是高置信候选分段，不代表绕过审核直接修改源数据。",
+        "Auditable collaboration：服务端保存领取人、租约、决定、版本和审计事件。",
+    ])
+
+    doc.add_heading("36.6 Quick start、输出目录和资源模型：面试官如何亲自复现", level=2)
+    add_paragraph(doc, "README 的 Quick start 先给无 GPU 演示，再给可选 GPU 扫描。正确展示顺序不是一上来安装 CUDA，而是先运行 synthetic audit 和 review fixture，验证输入契约、预期失败、候选关系、人工动作和安全写回；只有讨论真实 Teacher 推理时才安装 inference 依赖。")
+    add_command(doc, r"""
+    python examples\create_synthetic_dataset.py --output .demo-dataset
+    yolo-label-recovery audit .demo-dataset --output-dir .demo-audit --hash-images --check-images
+    python examples\create_review_fixture.py --output-dir .demo-review-fixture
+    yolo-label-recovery review-build .demo-review-fixture\dataset .demo-review-fixture\candidates.csv `
+      --output-dir .demo-review-result --render --redact-paths
+    yolo-label-recovery review-ui .demo-review-result
+    """, "无 GPU 也能演示数据审计、GT/AUTO 关系、按图审核和失败验收；不要把预生成 fixture 当成私有模型精度测试。")
+    add_paragraph(doc, "输出目录本身就是审计协议：candidates_all.csv 保存完整候选流，candidates_auto.csv 与 candidates_review.csv 保存路由结果，summary 解释统计，state.json 保存原子断点，manifest.json 记录参数、依赖、CUDA 与 GPU，report.html 提供可视化，trainable_dataset 只有显式物化时才生成。发布 GitHub 报告时必须 redact paths，避免泄露本地数据和权重路径。")
+    add_table(doc, ["资源", "运行时实际保留", "避免的问题"], [
+        ["GPU 显存", "当前 Teacher、当前 Batch 激活与预测张量", "六模型同时加载导致 OOM"],
+        ["CPU 内存", "图片路径、当前解码批次、同类 GT 缓存、有限复核样本", "全量图片与可视化长期驻留"],
+        ["磁盘", "流式 CSV、状态文件、派生标签和审核图", "内存无限增长且中断丢失进度"],
+    ], [1700, 4700, 2960])
+
+    doc.add_heading("36.7 文档导航、项目状态与 README 收尾", level=2)
+    add_paragraph(doc, "README 最后把读者引向专题文档，并明确该仓库是经过清理的工程作品而不是公开模型 benchmark。真实图片、权重、日志和机器路径不会上传；公开 fixture 用来验证机制，真实固定测试集才用于声明模型收益。这样既能展示真实工程能力，又不泄露公司或项目数据。")
     add_table(doc, ["文档", "解决的问题", "面试用途"], [
-        ["README.md", "项目是什么、为什么值得继续看", "开场与作品展示"],
-        ["docs/README.zh-CN.md", "不同读者应该先看哪里", "快速切换讲解深度"],
+        ["README.md", "项目是什么、为什么值得继续看", "英文开场与作品展示"],
+        ["README.zh-CN.md / docs/README.zh-CN.md", "中文完整链路与不同读者入口", "快速切换讲解深度"],
         ["REPRODUCIBLE_DEMO.zh-CN.md", "如何在无 GPU 环境复现", "现场演示与验收"],
         ["CODE_WALKTHROUGH.zh-CN.md", "候选如何穿过 Python、Java、MySQL 和 Vue", "代码级追问"],
+        ["COLLABORATION_PLATFORM.md", "登录、领单、租约、版本和审计如何工作", "后端与并发追问"],
         ["PROJECT_EVIDENCE.zh-CN.md", "哪些是实现、验证、原型和规划", "可信边界"],
+        ["MINING_SYSTEM_DESIGN.zh-CN.md", "如何接入完整矿区监控、RAG 和 Agent", "系统设计扩展"],
         ["INTERVIEW_QA.zh-CN.md", "高频问题如何回答", "模拟面试"],
-    ], [2500, 3600, 3260])
-    add_callout(doc, "作品集原则", "截图证明产品真实存在，测试证明代码行为，数据库约束证明并发边界，固定测试集证明模型收益。四类证据不能互相替代。", "warn")
+    ], [2800, 3800, 2560])
+    add_callout(doc, "从头到尾的收束句", "这个 GitHub 不是在展示一组漂亮截图，而是在展示一条证据链：数据先被审计，Teacher 只提出候选，统计策略控制风险，多几何关系解释冲突，人工平台授权决定，派生数据安全写回，固定测试集验证收益；每个环节都有代码、报告、测试或真实运行截图支撑。", "tip")
+    add_callout(doc, "作品集原则", "截图证明产品真实存在，测试证明代码行为，数据库约束证明并发边界，生产规模数字证明流程承载量，固定测试集证明模型收益。五类证据不能互相替代。", "warn")
 
     chapter(doc, "37", "沿候选生命线读懂核心代码", "不按目录背类名，而是追踪一条候选从 CLI、Teacher、审核到派生标签的完整状态变化。")
     add_logic_bridge(doc, "第 36 章解决别人如何看懂仓库", "自己必须能把首页中的每个结论追到代码", "用真实函数解释输入、状态、不变量和失败分支")
