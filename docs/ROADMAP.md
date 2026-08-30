@@ -40,7 +40,7 @@ The roadmap separates implemented behavior from ideas that still need evidence. 
 
 - Installable CLI, dependency-light smoke tests, pytest suite, wheel build and GitHub Actions CI.
 - Public synthetic fixtures and pre-generated reports for audit, calibration, consensus, near duplicates, prioritization and human review.
-- Chinese-first GitHub landing page with a complete English mirror.
+- English-first GitHub landing page with a complete Chinese engineering guide.
 - Documentation hub, reproducible demo guide, core-code walkthrough, evidence matrix, mining-system design and interview Q&A.
 - Repository-local Markdown link validation and structured issue/pull-request templates.
 - Illustrated project blog and a generated development/interview handbook.
@@ -52,7 +52,7 @@ The roadmap separates implemented behavior from ideas that still need evidence. 
 - Export of reviewer throughput, disagreement and correction metrics with privacy-safe aggregation.
 - MySQL Testcontainers concurrency tests for claim, lease expiry and stale-version conflicts.
 - Versioned review-decision export manifest and writeback change summary.
-- English versions of the new Chinese-first code, demo and evidence guides.
+- English versions of the detailed Chinese code, demo and evidence guides.
 
 ## Full mining-system evolution
 

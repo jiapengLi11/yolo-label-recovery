@@ -39,7 +39,7 @@ The difficult part was operational reliability on a long `K x N` scan. I added t
 7. Open `examples/near_duplicates/output/near_duplicate_report.html` to show review compression and split leakage.
 8. Open `examples/prioritization/output/prioritization_report.html` to show a limited-budget six-class review queue.
 9. Run `yolo-label-recovery doctor` to show environment diagnostics.
-10. Open `docs/assets/platform-dashboard.png` and `docs/assets/platform-review.png` to explain the validated two-account web workflow without requiring a live server.
+10. Open `docs/assets/platform-dashboard.png` and `docs/assets/platform-review-multibox.png` to explain the validated two-account web workflow and five-candidate grouped review without requiring a live server.
 
 This demonstration works without a GPU or private model weights. A full teacher scan remains an optional second demonstration when suitable public weights and data are available.
 

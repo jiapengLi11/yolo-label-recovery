@@ -1148,7 +1148,7 @@ def build_document(output_path: Path = OUT):
     chapter(doc, "16", "Vue 审核工作台：状态、心跳与对象 URL", "能解释前端如何保持任务租约、加载受保护图片并约束决策。")
     add_logic_bridge(doc, "后端已提供安全、事务化的任务 API", "把异步请求、租约和图片资源组合成不易出错的用户流程", "将前后端一起打包部署并验证网络路径")
     add_picture(doc, ROOT / "docs/assets/platform-dashboard.png", 6.45, "图 7  真实多人审核进度看板", "真实运行平台的候选总量、待审核、协作占用、疑难升级和完成率")
-    add_picture(doc, ROOT / "docs/assets/platform-review.png", 6.45, "图 8  真实联合场景 Web 审核工作台", "真实审核图、候选状态、置信度、建议动作、租约和受约束决策按钮")
+    add_picture(doc, ROOT / "docs/assets/platform-review-multibox.png", 6.45, "图 8  真实五候选联合场景 Web 审核工作台", "同一地下场景聚合展示三个人员、一个背心和一个拖拉机候选，并完整呈现租约、置信度、快捷键和受约束决策")
     add_picture(doc, ROOT / "docs/assets/platform-admin.png", 6.45, "图 9  管理员账号与项目成员分配", "管理员创建独立审核账号并把账号分配到指定项目")
     add_code(doc, "platform/frontend/src/api.ts", 108, 137, "request 包装器集中处理 localStorage JWT、Authorization 头、204 和错误响应，并提供最近审核等强类型接口。")
     add_code(doc, "platform/frontend/src/App.vue", 63, 75, "decisionOptions 根据后端推荐动作动态生成按钮，但它只是体验层，不能替代服务端校验。")
@@ -1540,7 +1540,7 @@ def build_document(output_path: Path = OUT):
     add_callout(doc, "自测标准", "不看手册，用 15 分钟把 mine_000123.jpg 从源标签讲到新版模型评测，并在每个阶段说出一个失败分支和一个验证证据。能做到，前后逻辑才真正连起来。", "tip")
 
     chapter(doc, "26", "用户反馈驱动的审核生产力迭代", "从真实审核速度、误操作恢复和前端可观测性出发，把功能堆叠改造成可持续使用的生产工作台。")
-    add_picture(doc, ROOT / "docs" / "assets" / "platform-review-productivity.png", 6.6, "图 13  一键审核、租约状态与最近决定纠错", "真实运行平台：当前任务、最近审核、连接状态和按图聚合候选同时可见")
+    add_picture(doc, ROOT / "docs" / "assets" / "platform-review-multibox.png", 6.6, "图 13  五候选按图聚合审核与租约状态", "真实运行平台：候选列表、完整图片、连接状态、受约束决策和快捷键同时可见")
     add_callout(doc, "本轮最重要的产品结论", "审核员每天处理的是大量重复判断。主流程每增加一次确认或一次手动跳转，都会按候选数量线性放大成本。安全设计必须保护数据，但不能无证据地牺牲吞吐。", "info")
 
     doc.add_heading("26.1 为什么‘先选择、再确认、再下一条’被回退", level=2)
@@ -1737,15 +1737,15 @@ def build_document(output_path: Path = OUT):
     ])
     add_callout(doc, "STAR 收束", "Situation：多源六类数据联合场景漏标。Task：降低人工成本且不污染原标签。Action：六 Teacher、几何分流、流式推理、多人审核、事务与审计。Result：形成可运行、可追溯、可继续评测的数据闭环；模型收益仍以固定测试集和现场专项集为准。", "tip")
 
-    chapter(doc, "36", "把 GitHub 变成中文优先的面试作品集", "让面试官在 30 秒、5 分钟、15 分钟和 30 分钟四种停留时间内都能看到完整证据。")
-    add_paragraph(doc, "大厂面试官通常不会从仓库第一行读到最后一行。首页必须先回答：解决什么真实问题、最难的工程矛盾是什么、有哪些真实运行证据、如何在没有私有数据和 GPU 的情况下复现、哪些能力仍是下一阶段设计。当前仓库因此使用中文默认 README，英文作为完整镜像，并增加文档总入口。")
+    chapter(doc, "36", "把 GitHub 变成面向国际面试官的工程作品集", "让面试官在 30 秒、5 分钟、15 分钟和 30 分钟四种停留时间内都能看到完整证据。")
+    add_paragraph(doc, "大厂面试官通常不会从仓库第一行读到最后一行。首页必须先回答：解决什么真实问题、最难的工程矛盾是什么、有哪些真实运行证据、如何在没有私有数据和 GPU 的情况下复现、哪些能力仍是下一阶段设计。当前仓库使用英文作为 GitHub 默认首页，降低国际面试官的阅读门槛；中文长版、代码导读和学习手册则负责承载更深入的原理、实验与面试复盘。")
     add_table(doc, ["停留时间", "首页应提供的证据", "面试官形成的判断"], [
         ["30 秒", "一句话价值、技术栈、真实审核界面", "不是孤立脚本，而是完整工程作品"],
         ["5 分钟", "证据矩阵、完成度边界、生产规模数字", "知道你没有把规划冒充落地"],
         ["15 分钟", "无 GPU 演示、预期输出和失败验收", "第三方能够复现关键机制"],
         ["30 分钟", "核心代码导读、事务时序和数据不变量", "能够接受后端、算法和系统设计深挖"],
     ], [1500, 3900, 3960])
-    add_picture(doc, ROOT / "docs" / "assets" / "platform-review-productivity.png", 6.65, "图 16  GitHub 首页使用的真实多人审核工作台", "真实审核界面、同图候选、一键决策、租约和最近审核")
+    add_picture(doc, ROOT / "docs" / "assets" / "platform-review-multibox.png", 6.65, "图 16  GitHub 首页使用的真实多人审核工作台", "真实地下场景、五个同图候选、一键决策、租约、快捷键和释放任务入口")
     add_paragraph(doc, "文档中心按目标而非文件名组织：快速理解、公开复现、核心代码、协作平台、证据边界、完整矿区系统和面试问答。这样首页负责导航，专题文档负责深度，学习手册负责把知识、代码和实验连接起来。")
     add_table(doc, ["文档", "解决的问题", "面试用途"], [
         ["README.md", "项目是什么、为什么值得继续看", "开场与作品展示"],
@@ -1946,7 +1946,7 @@ def build_document(output_path: Path = OUT):
 
     chapter(doc, "附录 E", "现场演示与面试速查", "在联调、答辩或面试前十分钟快速确认环境、入口、证据和边界。")
     add_table(doc, ["场景", "先打开/执行", "必须确认"], [
-        ["GitHub 展示", "README.md -> 文档总入口", "中文首页、截图、CI 和相对链接正常"],
+        ["GitHub 展示", "README.md -> README.zh-CN.md -> 文档总入口", "英文默认首页、中文深度手册、真实截图、CI 和相对链接正常"],
         ["无 GPU 演示", "create_synthetic_dataset + audit", "预期 FAIL 且问题数量符合 fixture"],
         ["审核演示", "review-build + review-ui", "同图候选、允许动作、自动保存和恢复"],
         ["多人平台", "登录 -> 项目 -> 领取 -> 决策 -> 最近审核", "两个账号不重复领取、纠错有审计"],

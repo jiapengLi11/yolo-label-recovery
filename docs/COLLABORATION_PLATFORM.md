@@ -15,11 +15,11 @@ The original Tk reviewer remains the best zero-dependency choice for one reviewe
   <img src="assets/platform-admin.png" width="49%" alt="Admin account and membership management">
 </p>
 
-![Real joint-scene review workspace / 真实联合场景审核工作台](assets/platform-review.png)
+![Real five-candidate joint-scene review workspace / 真实五候选联合场景审核工作台](assets/platform-review-multibox.png)
 
-The screenshots above were captured from the actual Vue and Spring Boot services against a real, user-approved review package. They demonstrate the real login flow, project progress, atomic task claim, read-only review visual delivery, constrained decisions, account creation and member assignment. They are not UI mockups and do not represent model-accuracy evidence.
+The screenshots above were captured from the actual Vue and Spring Boot services against a real, user-approved review package. The primary workspace contains five grouped candidates from one underground image (`3 person + 1 vest + 1 tractor`) and exposes the complete candidate rail, image canvas, lease state, decision panel, shortcuts and release path. They demonstrate the real login flow, project progress, atomic task claim, read-only review visual delivery, constrained decisions, account creation and member assignment. They are not UI mockups and do not represent model-accuracy evidence.
 
-以上截图由真实运行的 Vue 与 Spring Boot 服务生成，并加载了经许可使用的真实审核包。截图覆盖登录、项目进度、原子领取任务、只读审核图加载、受约束决策、账号创建和成员分配，不是界面示意图，也不作为模型精度证据。
+以上截图由真实运行的 Vue 与 Spring Boot 服务生成，并加载了经许可使用的真实审核包。主工作台在一张地下场景原图中按图聚合展示 `3 person + 1 vest + 1 tractor` 共五个候选，并完整保留候选列表、图片画布、租约、决策区、快捷键和释放入口。截图覆盖登录、项目进度、原子领取任务、只读审核图加载、受约束决策、账号创建和成员分配，不是界面示意图，也不作为模型精度证据。
 
 ## 3. Architecture / 架构
 

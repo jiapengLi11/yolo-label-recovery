@@ -8,10 +8,9 @@ This directory turns the offline review queue into a multi-user, auditable web w
 
 ![Real review dashboard](../docs/assets/platform-dashboard.png)
 
-<p>
-  <img src="../docs/assets/platform-review.png" width="49%" alt="Real review task">
-  <img src="../docs/assets/platform-admin.png" width="49%" alt="Account administration">
-</p>
+![Real five-candidate review workspace](../docs/assets/platform-review-multibox.png)
+
+![Account administration](../docs/assets/platform-admin.png)
 
 ## Components / 目录
 
@@ -38,9 +37,7 @@ The UI-library decision is documented in [ADR 0004](../docs/adr/0004-custom-revi
 
 ## Docker deployment / Docker 部署
 
-![Running review workspace](../docs/assets/platform-review-workspace.png)
-
-The image above is a capture of the running application with a real review visual and seeded collaboration records, not a mockup. Additional login and administration screenshots are available in [COLLABORATION_PLATFORM.md](../docs/COLLABORATION_PLATFORM.md).
+The workspace above is a capture of the running application with one real underground image and five grouped candidates, not a mockup. Additional login, dashboard and administration screenshots are available in [COLLABORATION_PLATFORM.md](../docs/COLLABORATION_PLATFORM.md).
 
 ```powershell
 cd platform

@@ -11,9 +11,14 @@ const username = process.env.LABEL_REVIEW_CAPTURE_USERNAME
 const password = process.env.LABEL_REVIEW_CAPTURE_PASSWORD
 const outputDir = path.resolve(process.argv[2] || 'docs/assets')
 const chromePath = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+const viewportWidth = Number.parseInt(process.env.LABEL_REVIEW_CAPTURE_WIDTH || '1600', 10)
+const viewportHeight = Number.parseInt(process.env.LABEL_REVIEW_CAPTURE_HEIGHT || '1200', 10)
 
 if (!username || !password) {
   throw new Error('Set LABEL_REVIEW_CAPTURE_USERNAME and LABEL_REVIEW_CAPTURE_PASSWORD.')
+}
+if (!Number.isInteger(viewportWidth) || viewportWidth <= 0 || !Number.isInteger(viewportHeight) || viewportHeight <= 0) {
+  throw new Error('LABEL_REVIEW_CAPTURE_WIDTH and LABEL_REVIEW_CAPTURE_HEIGHT must be positive integers.')
 }
 
 class CdpClient {
@@ -146,8 +151,8 @@ async function main() {
     await client.send('Page.enable')
     await client.send('Runtime.enable')
     await client.send('Emulation.setDeviceMetricsOverride', {
-      width: 1600,
-      height: 1000,
+      width: viewportWidth,
+      height: viewportHeight,
       deviceScaleFactor: 1,
       mobile: false,
     })

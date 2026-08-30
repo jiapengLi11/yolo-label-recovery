@@ -2,7 +2,7 @@
 
 > 中文优先的工程作品集：[文档总入口](docs/README.zh-CN.md) | [15 分钟公开演示](docs/REPRODUCIBLE_DEMO.zh-CN.md) | [核心代码导读](docs/CODE_WALKTHROUGH.zh-CN.md) | [项目证据与边界](docs/PROJECT_EVIDENCE.zh-CN.md)
 
-[简体中文](README.md) | [English](README.en.md) | [完整中文长版](README.zh-CN.md)
+[English](README.md) | [简体中文](README.zh-CN.md) | [中文文档总入口](docs/README.zh-CN.md)
 
 [![CI](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/jiapengLi11/yolo-label-recovery/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jiapengLi11/yolo-label-recovery)](https://github.com/jiapengLi11/yolo-label-recovery/releases)
@@ -27,7 +27,7 @@
 
 项目的核心不是“用模型自动生成更多框”，而是建立一条风险可控的证据链：模型只提出候选，规则解释关系，人工授权决策，数据库保证协作一致性，安全写回生成可回滚的数据版本，固定测试集最终判断模型是否真的变好。
 
-![真实多人审核平台](docs/assets/platform-review-productivity.png)
+![真实五候选联合场景多人审核平台](docs/assets/platform-review-multibox.png)
 
 ## 一张图看完整链路
 
@@ -118,14 +118,11 @@ flowchart LR
 
 ![真实多人审核进度看板](docs/assets/platform-dashboard.png)
 
-<p>
-  <img src="docs/assets/platform-review.png" width="49%" alt="真实联合场景 Web 审核工作台">
-  <img src="docs/assets/platform-admin.png" width="49%" alt="审核账号与项目分配面板">
-</p>
+![审核账号与项目分配面板](docs/assets/platform-admin.png)
 
-![真实一键审核、租约状态与最近决定纠错流程](docs/assets/platform-review-productivity.png)
+以上均为 Vue + Spring Boot 应用的真实运行截图，不是设计示意图。首页主视觉特意选用一张包含 `3 person + 1 vest + 1 tractor` 共五个候选的真实地下场景，因此左侧候选列表、完整图片画布、租约状态、置信度、受约束决策、快捷键和释放任务入口可在同一屏完整展示。登录页展示角色入口，管理员界面展示账号创建与项目成员分配能力。
 
-以上均为 Vue + Spring Boot 应用的真实运行截图，不是设计示意图。登录页展示审核人员实际使用的角色入口；工作台同时展示已领取任务、真实审核图、类别置信度、受约束决策按钮和项目实时进度；管理员界面展示账号创建与项目成员分配能力。
+早期 Tk 桌面审核器与 Web 平台并非重复实现：桌面版适合离线交付和单人审核，Web 版进一步解决多人身份、原子领单、租约续期、项目隔离、版本冲突和不可变审计问题。
 
 ```mermaid
 flowchart LR
