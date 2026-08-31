@@ -60,13 +60,17 @@ Authentication and authorization are separate.
 
 ## 5. Concurrency and correctness / 并发与正确性
 
-### Atomic claim / 原子领取
+### Atomic image claim / 图片级原子领取
 
-`claim-next` runs in one database transaction. The repository uses `PESSIMISTIC_WRITE` (`SELECT ... FOR UPDATE`) to lock the first pending or expired task. A concurrent reviewer must wait and then receives a different row or `204 No Content`.
+The allocation boundary is the source image, identified by `(project_id, split, image_name)`, rather than an individual candidate box. `claim-next` first selects a claimable anchor in one transaction, then uses `PESSIMISTIC_WRITE` (`SELECT ... FOR UPDATE`) to lock every sibling row from that image. If any sibling still has a live lease owned by another reviewer, the whole image is skipped. Otherwise all pending or expired siblings are assigned to the current reviewer with one lease deadline.
+
+This distinction is important: box-level claiming could send a person's box to reviewer A and the smoking or helmet box from the same image to reviewer B. Each reviewer would lose the full joint-scene context and could make conflicting choices. Image-level ownership keeps all boxes, keyboard navigation, heartbeat and release inside one consistent review unit while retaining candidate-level decisions and audit records.
+
+并发分配边界不是单个候选框，而是由 `(project_id, split, image_name)` 唯一确定的整张源图。`claim-next` 在同一事务中先找到可领取锚点，再通过 `PESSIMISTIC_WRITE` 锁住该图全部候选行；只要同图任一候选仍被其他审核人有效占用，整图就跳过，否则把全部待审或租约过期候选一次性分配给当前审核人。这样不会把同一图中的 person、helmet、smoking 等框拆给不同人员，既保留联合场景上下文，又继续对每个候选单独记录决定和审计证据。
 
 ### Renewable lease / 可续租任务
 
-A claim is not permanent. It records `claimed_by` and `lease_until`; the browser sends a heartbeat every 30 seconds and renders the remaining lease, renewal state and browser network state. Closing the browser stops renewal, so the task becomes claimable after the configured lease period. A reviewer must release or finish the active task before switching projects.
+A claim is not permanent. Every owned sibling records the same `claimed_by` and `lease_until`; the browser sends a heartbeat every 30 seconds and the backend renews all still-owned candidates from that image under a pessimistic lock. Closing the browser stops renewal, so the whole unfinished image becomes claimable after the configured lease period. Explicit release also releases all owned siblings. A reviewer must release or finish the active image before switching projects.
 
 ### One-click throughput and audited correction / 一键审核与审计式纠错
 
@@ -84,9 +88,13 @@ Every task carries JPA `@Version`. The client submits `expectedVersion` with a d
 
 ### Validated concurrent workflow / 已验证的并发流程
 
-The platform was exercised on a trusted campus LAN with two independent accounts reviewing at the same time. The production-shaped project contained `30,183` candidates. A previous desktop review file containing `4,465` decisions was migrated after task import; at migration time this became `4,464` completed tasks and `1` escalated task. Re-running the migration skipped existing decisions instead of duplicating them.
+The platform was exercised on a trusted campus LAN with two independent accounts reviewing at the same time. The production-shaped project contained `30,183` candidates. A previous desktop review file containing `4,465` decisions was migrated after task import; re-running the migration skipped existing decisions instead of duplicating them. The project was later completed with `30,183 / 30,183` final decisions and `0` pending, claimed or escalated tasks.
 
-平台已在可信校园网中用两个独立账号同时领取和审核任务。真实规模项目包含 `30,183` 条候选；桌面端已完成的 `4,465` 条历史决定在任务导入后迁移为 `4,464` 条完成和 `1` 条疑难升级。重复迁移时已存在决定会被跳过，不会生成重复结果。
+平台已在可信校园网中用两个独立账号同时领取和审核任务。真实规模项目包含 `30,183` 条候选；桌面端 `4,465` 条历史决定在任务导入后幂等迁移，重复迁移不会生成重复结果。最终 `30,183 / 30,183` 条候选全部形成明确决定，待审、占用和疑难升级均为 `0`。
+
+Final decision distribution: `15,283 ACCEPT_ADD`, `6,307 ACCEPT_EVAL_LABEL`, `551 ACCEPT_REPLACE_GT`, and `8,042 REJECT`. The closeout pipeline stopped the API before export, joined database decisions back to geometry-rich evidence by stable `candidate_id`, created a `mysqldump --single-transaction` snapshot, rejected incomplete or uncertain reviews, and emitted SHA-256 checksums. The source review package and source labels remained read-only.
+
+最终决定分布为：新增框 `15,283`、评测集确认框 `6,307`、替换原框 `551`、拒绝候选 `8,042`。收尾流程在导出前停止 API 写入，按稳定的 `candidate_id` 将数据库决定合并回带完整几何证据的模板，使用 `mysqldump --single-transaction` 生成一致性快照，并拒绝未完成或疑难状态，最后输出 SHA-256 校验清单；原审核包和原始标签始终只读。
 
 This test verified atomic allocation, lease ownership, historical migration, real-image access and audit attribution. It did not attempt to establish a maximum concurrent-user capacity.
 
@@ -175,8 +183,8 @@ See [campus-deploy/README.md](../platform/campus-deploy/README.md). Local passwo
 | POST | `/api/projects/{id}/members` | Assign a project member, admin only |
 | POST | `/api/projects/{id}/tasks:batch` | Idempotent task import, admin only |
 | POST | `/api/projects/{id}/decisions:history` | Idempotent historical-decision migration, admin only |
-| POST | `/api/tasks/claim-next?projectId={id}` | Atomically lease one task |
-| POST | `/api/tasks/{id}/heartbeat` | Renew current user's lease |
+| POST | `/api/tasks/claim-next?projectId={id}` | Atomically lease one image group and return its anchor task |
+| POST | `/api/tasks/{id}/heartbeat` | Renew every owned candidate lease from the same image |
 | POST | `/api/tasks/{id}/decision` | Submit constrained decision and expected version |
 | PUT | `/api/tasks/{id}/decision` | Revise an owned/admin decision with expected version |
 | GET | `/api/tasks/recent?projectId={id}` | Current reviewer's recent decisions in one project |
@@ -201,10 +209,10 @@ node platform\tools\capture_platform_screenshots.mjs docs\assets
 
 1. Start from the data problem: incomplete labels make true objects become false background supervision.
 2. Explain why offline inference and online review are separated: GPU jobs are expensive and bursty; human review is concurrent and stateful.
-3. Draw the claim transaction and lease timeline; emphasize pessimistic locking for allocation, visible heartbeat recovery and optimistic locking for stale clients.
+3. Draw the image-level claim transaction and lease timeline; explain why the lock key is `(project, split, image)` instead of one candidate row, then distinguish short database locks, renewable business leases and optimistic stale-write protection.
 4. Explain dual authorization: RBAC handles capability while project membership handles data scope.
 5. Show bounded idempotent import and read-only visual mounts as memory-safety and data-safety decisions.
-6. Close with evidence: `30,183` imported candidates, `4,465` migrated decisions, two-account concurrent validation, real screenshots, automated Java/Python tests and two reproducible deployment modes.
+6. Close with evidence: `30,183 / 30,183` final decisions, `0` unresolved states, two-account concurrent validation, a frozen database/CSV/checksum bundle, real screenshots, automated Java/Python tests and two reproducible deployment modes.
 
 ## 13. Production hardening / 生产加固
 

@@ -34,6 +34,20 @@ public interface TaskRepository extends JpaRepository<ReviewTask, Long> {
     @Query("select t from ReviewTask t join fetch t.project left join fetch t.claimedBy where t.id = :id")
     Optional<ReviewTask> findByIdForUpdate(@Param("id") Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select t from ReviewTask t
+            left join fetch t.claimedBy
+            where t.project.id = :projectId
+              and t.split = :split
+              and t.imageName = :imageName
+            order by t.id
+            """)
+    List<ReviewTask> findImageTasksForUpdate(
+            @Param("projectId") Long projectId,
+            @Param("split") String split,
+            @Param("imageName") String imageName);
+
     @Query("select t.candidateId from ReviewTask t where t.project.id = :projectId and t.candidateId in :candidateIds")
     List<String> findExistingCandidateIds(
             @Param("projectId") Long projectId,

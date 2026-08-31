@@ -11,16 +11,12 @@ const task = ref<ReviewTask | null>(null)
 const imageCandidates = ref<ImageCandidate[]>([])
 const visualUrl = ref('')
 const imageStage = ref<HTMLElement | null>(null)
-const imageViewMode = ref<'fit' | 'actual' | 'zoom'>('fit')
+const imageViewMode = ref<'fit' | 'actual' | 'zoom'>('actual')
 const imageZoom = ref(100)
 const comment = ref('')
 const showShortcuts = ref(false)
 const showRecent = ref(false)
 const recentDecisions = ref<RecentDecision[]>([])
-const heartbeatStatus = ref<'idle' | 'renewing' | 'ok' | 'error'>('idle')
-const lastHeartbeatAt = ref<string | null>(null)
-const now = ref(Date.now())
-const online = ref(navigator.onLine)
 const busy = ref(false)
 const error = ref('')
 const notice = ref('')
@@ -30,11 +26,15 @@ const adminUsers = ref<User[]>([])
 const membersByProject = ref<Record<number, ProjectMember[]>>({})
 const memberUsername = ref('')
 const showAdmin = ref(false)
+const heartbeatStatus = ref<'idle' | 'renewing' | 'ok' | 'error'>('idle')
+const now = ref(Date.now())
+const online = ref(navigator.onLine)
 let heartbeatTimer: number | undefined
 let clockTimer: number | undefined
 
 const percent = computed(() => Math.round((progress.value?.completionRate ?? 0) * 100))
 const leaseText = computed(() => task.value?.leaseUntil ? new Date(task.value.leaseUntil).toLocaleTimeString('zh-CN') : '--')
+const taskIsActive = computed(() => task.value?.state === 'CLAIMED')
 const leaseRemainingSeconds = computed(() => task.value?.leaseUntil
   ? Math.max(0, Math.floor((new Date(task.value.leaseUntil).getTime() - now.value) / 1000))
   : 0)
@@ -43,8 +43,7 @@ const leaseCountdown = computed(() => {
   const seconds = leaseRemainingSeconds.value % 60
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
-const leaseIsWarning = computed(() => taskIsActive.value && leaseRemainingSeconds.value <= 120)
-const taskIsActive = computed(() => task.value?.state === 'CLAIMED')
+const leaseIsWarning = computed(() => taskIsActive.value && leaseRemainingSeconds.value <= 45)
 const taskIsCompleted = computed(() => task.value?.state === 'COMPLETED' || task.value?.state === 'ESCALATED')
 const currentImageCandidate = computed(() => imageCandidates.value.find(candidate => candidate.id === task.value?.id) ?? null)
 const canReviseCurrent = computed(() => taskIsCompleted.value
@@ -116,6 +115,11 @@ async function refreshProgress() {
   progress.value = await api.progress(selectedProject.value.id)
 }
 
+async function refreshRecentDecisions() {
+  if (!selectedProject.value || currentUser.value?.role === 'AUDITOR') return
+  recentDecisions.value = await api.recentDecisions(selectedProject.value.id)
+}
+
 async function claimNext() {
   if (!selectedProject.value) return
   busy.value = true
@@ -135,19 +139,12 @@ async function claimNext() {
   }
 }
 
-async function refreshRecentDecisions() {
-  if (!selectedProject.value || currentUser.value?.role === 'AUDITOR') return
-  recentDecisions.value = await api.recentDecisions(selectedProject.value.id)
-}
-
 async function activateTask(nextTask: ReviewTask, candidate?: ImageCandidate) {
   task.value = nextTask
   const stored = candidate ?? imageCandidates.value.find(item => item.id === nextTask.id)
   comment.value = stored?.decisionComment ?? ''
   await Promise.all([loadVisual(nextTask), loadImageCandidates(nextTask.id)])
-  if (nextTask.state === 'CLAIMED') {
-    startHeartbeat()
-  }
+  if (nextTask.state === 'CLAIMED') startHeartbeat()
   else stopHeartbeat()
 }
 
@@ -188,9 +185,15 @@ async function advanceAfterDecision(completedTaskId: number) {
     ...imageCandidates.value.slice(completedIndex + 1),
     ...imageCandidates.value.slice(0, Math.max(completedIndex, 0)),
   ]
-  const nextInImage = ordered.find(candidate => candidate.state === 'PENDING')
+  const nextInImage = ordered.find(candidate =>
+    candidate.state === 'PENDING'
+      || (candidate.state === 'CLAIMED' && candidate.claimedBy === currentUser.value?.username),
+  )
   if (nextInImage) {
-    await activateTask(await api.claimTask(nextInImage.id), nextInImage)
+    const nextTask = nextInImage.state === 'CLAIMED'
+      ? await api.task(nextInImage.id)
+      : await api.claimTask(nextInImage.id)
+    await activateTask(nextTask, nextInImage)
     notice.value = '决定已保存，已自动进入本图下一框。'
     return
   }
@@ -207,8 +210,9 @@ async function advanceAfterDecision(completedTaskId: number) {
 
 async function openCandidate(candidate: ImageCandidate) {
   if (busy.value || candidate.id === task.value?.id) return
-  if (taskIsActive.value) {
-    const shouldSwitch = window.confirm('当前框尚未提交。切换会释放当前任务，确定继续吗？')
+  const ownedSibling = candidate.state === 'CLAIMED' && candidate.claimedBy === currentUser.value?.username
+  if (taskIsActive.value && !ownedSibling) {
+    const shouldSwitch = window.confirm('当前图片尚未审核完成。切换会释放本图剩余任务，确定继续吗？')
     if (!shouldSwitch || !task.value) return
     await api.release(task.value.id)
     stopHeartbeat()
@@ -218,6 +222,11 @@ async function openCandidate(candidate: ImageCandidate) {
   busy.value = true
   error.value = ''
   try {
+    if (ownedSibling) {
+      await activateTask(await api.task(candidate.id), candidate)
+      notice.value = '已切换到本图中由你领取的审核框。'
+      return
+    }
     if (candidate.state === 'PENDING') {
       await activateTask(await api.claimTask(candidate.id), candidate)
       notice.value = '已切换到本图中的待审核框。'
@@ -243,7 +252,7 @@ async function openCandidate(candidate: ImageCandidate) {
 async function openRecentDecision(recent: RecentDecision) {
   if (busy.value || recent.taskId === task.value?.id) return
   if (taskIsActive.value) {
-    const shouldSwitch = window.confirm('当前框尚未提交。打开历史记录会释放当前任务，确定继续吗？')
+    const shouldSwitch = window.confirm('当前图片尚未审核完成。打开历史记录会释放本图剩余任务，确定继续吗？')
     if (!shouldSwitch || !task.value) return
     await api.release(task.value.id)
     clearTask()
@@ -265,12 +274,15 @@ async function openRecentDecision(recent: RecentDecision) {
 async function nextCandidate() {
   if (busy.value) return
   if (taskIsActive.value) {
-    error.value = '请直接点击审核决定，系统会自动进入下一框；若暂不处理可释放任务。'
+    error.value = '请先确认保存或释放当前框，再进入下一框。'
     return
   }
   const start = Math.max(currentCandidateIndex.value + 1, 0)
   const ordered = [...imageCandidates.value.slice(start), ...imageCandidates.value.slice(0, start)]
-  const next = ordered.find(candidate => candidate.state === 'PENDING')
+  const next = ordered.find(candidate =>
+    candidate.state === 'PENDING'
+      || (candidate.state === 'CLAIMED' && candidate.claimedBy === currentUser.value?.username),
+  )
   if (next) {
     await openCandidate(next)
     return
@@ -281,7 +293,7 @@ async function nextCandidate() {
 
 async function nextImage() {
   if (taskIsActive.value) {
-    error.value = '当前框尚未审核，完成决定后会自动进入下一图；若暂不处理可释放任务。'
+    error.value = '当前框尚未提交，不能跳到下一图。'
     return
   }
   clearTask()
@@ -380,7 +392,7 @@ function projectNamesFor(user: User): string[] {
 
 async function loadVisual(nextTask: ReviewTask) {
   revokeVisual()
-  resetImageView()
+  showActualSize()
   visualUrl.value = await visualBlob(nextTask)
 }
 
@@ -417,7 +429,6 @@ function startHeartbeat() {
       heartbeatStatus.value = 'renewing'
       task.value = await api.heartbeat(task.value.id)
       heartbeatStatus.value = 'ok'
-      lastHeartbeatAt.value = new Date().toISOString()
     } catch (reason) {
       heartbeatStatus.value = 'error'
       error.value = message(reason)
@@ -459,15 +470,6 @@ function logout() {
   recentDecisions.value = []
 }
 
-function handleOnline() {
-  online.value = true
-}
-
-function handleOffline() {
-  online.value = false
-  heartbeatStatus.value = 'error'
-}
-
 function message(reason: unknown): string {
   return reason instanceof Error ? reason.message : '发生未知错误'
 }
@@ -476,6 +478,15 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return target instanceof HTMLInputElement
     || target instanceof HTMLTextAreaElement
     || target instanceof HTMLSelectElement
+}
+
+function handleOnline() {
+  online.value = true
+}
+
+function handleOffline() {
+  online.value = false
+  heartbeatStatus.value = 'error'
 }
 
 async function moveCandidate(offset: number) {
@@ -545,7 +556,9 @@ onMounted(() => {
   window.addEventListener('keydown', handleShortcut)
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
-  clockTimer = window.setInterval(() => { now.value = Date.now() }, 1_000)
+  clockTimer = window.setInterval(() => {
+    now.value = Date.now()
+  }, 1_000)
   void bootstrap()
 })
 onBeforeUnmount(() => {
@@ -585,8 +598,8 @@ onBeforeUnmount(() => {
     <header class="topbar">
       <div><div class="eyebrow">MULTI-TEACHER QA</div><h1>矿安标注协作台</h1></div>
       <div class="identity">
-        <span class="connection-status" :class="{ offline: !online, warning: heartbeatStatus === 'error' }">
-          <i></i>{{ !online ? '网络离线' : heartbeatStatus === 'renewing' ? '正在续租' : heartbeatStatus === 'error' ? '心跳异常' : '连接正常' }}
+        <span class="connection-status" :class="{ offline: !online || heartbeatStatus === 'error', renewing: heartbeatStatus === 'renewing' }">
+          <i></i>{{ !online ? '网络离线' : heartbeatStatus === 'error' ? '续租异常' : heartbeatStatus === 'renewing' ? '正在续租' : '连接正常' }}
         </span>
         <button v-if="selectedProject && currentUser.role !== 'AUDITOR'" class="recent-toggle" type="button" @click="showRecent = !showRecent">
           最近审核 <span>{{ recentDecisions.length }}</span>
@@ -618,7 +631,7 @@ onBeforeUnmount(() => {
 
     <section v-if="showRecent" class="recent-drawer" aria-label="我的最近审核记录">
       <div class="recent-head">
-        <div><strong>我的最近审核</strong><span>仅显示当前账号在当前项目中的决定</span></div>
+        <div><strong>我的最近审核</strong><span>显示当前账号在当前项目中的最近决定，可打开并复查</span></div>
         <button class="link-button" type="button" @click="showRecent = false">关闭</button>
       </div>
       <div v-if="recentDecisions.length" class="recent-list">
@@ -671,11 +684,9 @@ onBeforeUnmount(() => {
       </aside>
 
       <article class="canvas-panel">
-        <div class="panel-head">
-          <div><span class="live-dot" :class="{ saved: taskIsCompleted, warning: leaseIsWarning || heartbeatStatus === 'error' }"></span>{{ task ? (taskIsActive ? '任务租约生效中' : '已保存，可复查修改') : '等待领取' }}</div>
-          <span v-if="taskIsActive" class="lease-countdown" :class="{ warning: leaseIsWarning }" :title="`租约截止 ${leaseText}`">
-            剩余 {{ leaseCountdown }} · {{ heartbeatStatus === 'renewing' ? '续租中' : heartbeatStatus === 'error' ? '续租异常' : '心跳正常' }}
-          </span>
+        <div class="panel-head" :class="{ warning: leaseIsWarning }">
+          <div><span class="live-dot" :class="{ saved: taskIsCompleted, warning: leaseIsWarning }"></span>{{ task ? (taskIsActive ? '图片级租约生效中' : '已保存，可复查修改') : '等待领取' }}</div>
+          <span v-if="taskIsActive" class="lease-countdown" :class="{ warning: leaseIsWarning }">剩余 {{ leaseCountdown }} · 至 {{ leaseText }}</span>
           <span v-else-if="task">本图 {{ imageCandidates.length }} 个候选框</span>
         </div>
         <div v-if="task" ref="imageStage" class="image-stage">
@@ -738,13 +749,13 @@ onBeforeUnmount(() => {
             <div><kbd>1 / 2 / 3</kbd><span>立即保存接受、拒绝、疑难并自动前进</span></div>
             <div><kbd>N / Shift+N</kbd><span>下一框 / 下一图</span></div>
             <div><kbd>↑ ↓ / J K</kbd><span>浏览本图候选框</span></div>
-            <div><kbd>R</kbd><span>释放当前未审核任务</span></div>
+            <div><kbd>R</kbd><span>释放当前图片的未审核任务</span></div>
             <div><kbd>0 / + / -</kbd><span>适应窗口 / 放大 / 缩小图片</span></div>
           </div>
         </template>
         <template v-else>
           <div class="guide-number">01</div><h2>领取后再判断</h2><p>真实图像、GT 框和 AUTO 框会在同一张审核图里显示。按钮由候选建议动作动态约束，降低误操作风险。</p>
-          <div class="guide-number">02</div><h2>心跳自动续租</h2><p>页面每 30 秒续租一次；关闭页面后租约到期，任务自动回到公共队列。</p>
+          <div class="guide-number">02</div><h2>图片级心跳续租</h2><p>页面每 30 秒为当前图片的全部候选框统一续租；关闭页面后租约到期，整张图片自动回到公共队列。</p>
         </template>
       </aside>
     </section>

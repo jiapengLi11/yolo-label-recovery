@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $pidFile = Join-Path $PSScriptRoot "platform.pid"
 if (-not (Test-Path -LiteralPath $pidFile)) {
-    Write-Output "平台当前未运行。"
+    Write-Output "Platform is not running."
     exit 0
 }
 
@@ -17,4 +17,4 @@ if ($process) {
     $process.WaitForExit(30000)
 }
 Remove-Item -LiteralPath $pidFile -Force
-Write-Output "平台已停止。"
+Write-Output "Platform stopped."

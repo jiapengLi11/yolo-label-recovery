@@ -119,6 +119,50 @@ class TaskServiceIntegrationTests {
     }
 
     @Test
+    void claimingOneCandidateLeasesTheWholeImageToOneReviewer() {
+        AppUser admin = users.save(new AppUser("admin-image", "{noop}password", "Admin", UserRole.ADMIN));
+        AppUser first = users.save(new AppUser("reviewer-image-a", "{noop}password", "Reviewer A", UserRole.REVIEWER));
+        AppUser second = users.save(new AppUser("reviewer-image-b", "{noop}password", "Reviewer B", UserRole.REVIEWER));
+        ProjectView project = projects.create(
+                new CreateProjectRequest("image-lease-test", "integration", reviewRoot.toString()),
+                admin);
+        projects.importTasks(
+                project.id(),
+                List.of(
+                        new TaskImportRequest(
+                                "R0101", "train", "same.jpg", "person", 0.91,
+                                "GT0_AUTO1", "accept_add_or_reject", "visuals/same-1.jpg"),
+                        new TaskImportRequest(
+                                "R0102", "train", "same.jpg", "helmet", 0.88,
+                                "GT0_AUTO1", "accept_add_or_reject", "visuals/same-2.jpg"),
+                        new TaskImportRequest(
+                                "R0103", "train", "other.jpg", "vest", 0.82,
+                                "GT0_AUTO1", "accept_add_or_reject", "visuals/other.jpg")),
+                admin);
+        projects.assignMember(project.id(), first.getUsername(), admin);
+        projects.assignMember(project.id(), second.getUsername(), admin);
+
+        TaskView firstClaim = tasks.claimNext(project.id(), first).orElseThrow();
+        List<com.jiapeng.labelreview.api.ApiDtos.ImageCandidateView> sameImage =
+                tasks.imageCandidates(firstClaim.id(), first);
+
+        assertThat(sameImage).hasSize(2);
+        assertThat(sameImage).allSatisfy(candidate -> {
+            assertThat(candidate.state()).isEqualTo(TaskState.CLAIMED);
+            assertThat(candidate.claimedBy()).isEqualTo(first.getUsername());
+        });
+
+        TaskView secondClaim = tasks.claimNext(project.id(), second).orElseThrow();
+        assertThat(secondClaim.imageName()).isEqualTo("other.jpg");
+
+        tasks.release(firstClaim.id(), first);
+        assertThat(tasks.imageCandidates(firstClaim.id(), first)).allSatisfy(candidate -> {
+            assertThat(candidate.state()).isEqualTo(TaskState.PENDING);
+            assertThat(candidate.claimedBy()).isNull();
+        });
+    }
+
+    @Test
     void reviewerCannotClaimAnUnassignedProject() {
         AppUser admin = users.save(new AppUser("admin-scope", "{noop}password", "Admin", UserRole.ADMIN));
         AppUser outsider = users.save(new AppUser("reviewer-outsider", "{noop}password", "Outsider", UserRole.REVIEWER));

@@ -98,7 +98,7 @@ See [Grouped Review Application](docs/GROUPED_REVIEW_APP.md) for the queue contr
 
 ### Multi-user collaboration platform
 
-The repository now includes a deployable web platform for teams that outgrow the portable desktop reviewer. A Vue 3 + TypeScript client talks to a Spring Boot 4 REST API backed by MySQL and Flyway. JWT authentication, `ADMIN / REVIEWER / AUDITOR` RBAC, project membership, pessimistic task claiming, renewable leases, optimistic versions and immutable audit events prevent duplicate work and stale decisions. One-click decisions automatically advance through image-grouped candidates; visible lease/network health and a reviewer-scoped recent-decision correction path make failures recoverable without weakening the audit boundary. The Python bridge streams the existing `review_queue.csv` into the API in bounded, idempotent batches.
+The repository now includes a deployable web platform for teams that outgrow the portable desktop reviewer. A Vue 3 + TypeScript client talks to a Spring Boot 4 REST API backed by MySQL and Flyway. JWT authentication, `ADMIN / REVIEWER / AUDITOR` RBAC, project membership, image-level pessimistic claiming, renewable leases, optimistic versions and immutable audit events prevent duplicate work and stale decisions. Claiming one candidate leases every pending candidate from the same `(project, split, image)` to one reviewer, preserving full-image context and preventing two people from making inconsistent decisions on different boxes from one image. One-click decisions automatically advance through the owned image group and then to the next image; visible lease/network health and a reviewer-scoped recent-decision correction path make failures recoverable without weakening the audit boundary. The Python bridge streams the existing `review_queue.csv` into the API in bounded, idempotent batches.
 
 ![Real role-aware login entry](docs/assets/platform-login.png)
 
@@ -108,7 +108,7 @@ The repository now includes a deployable web platform for teams that outgrow the
 
 These are captures of the actual Vue + Spring Boot application, not design mockups. The primary workspace shown at the top deliberately uses one real underground image with five grouped candidates (`3 person + 1 vest + 1 tractor`), so the candidate rail, full image canvas, lease state, confidence, constrained decisions, keyboard shortcuts and release path are visible in one frame. The login view shows the role-aware entry used by reviewers, while the admin view demonstrates account creation and project membership assignment.
 
-The earlier Tk desktop application and the web platform are complementary rather than redundant: the desktop version remains a portable offline handoff tool, while the web version adds identity, atomic claiming, renewable leases, project isolation, version conflicts and immutable audit history for team review.
+The earlier Tk desktop application and the web platform are complementary rather than redundant: the desktop version remains a portable offline handoff tool, while the web version adds identity, atomic image-level claiming, renewable group leases, project isolation, version conflicts and immutable audit history for team review.
 
 ```mermaid
 flowchart LR
@@ -118,9 +118,11 @@ flowchart LR
     A --> R["Read-only review visuals"]
 ```
 
-The workflow has been validated on a trusted campus LAN with two independent reviewer accounts working concurrently. It imported `30,183` tasks and migrated `4,465` historical desktop decisions through an idempotent endpoint while keeping the real review package read-only. This verifies the allocation, migration and audit workflow; it is not a large-scale load-test or model-accuracy claim.
+The workflow was validated on a trusted campus LAN with two independent reviewer accounts and then completed end to end. All `30,183 / 30,183` candidates reached a final decision with `0` pending, claimed or escalated tasks: `15,283 ACCEPT_ADD`, `6,307 ACCEPT_EVAL_LABEL`, `551 ACCEPT_REPLACE_GT` and `8,042 REJECT`. The closeout pipeline stopped writes, exported decisions by stable `candidate_id`, created a transactionally consistent MySQL dump, rejected incomplete or uncertain states, and generated SHA-256 checksums plus an exact-coordinate class-remap manifest. These figures demonstrate workflow completion and traceability, not detector accuracy or maximum concurrency.
 
 See [Collaboration Platform](docs/COLLABORATION_PLATFORM.md) for screenshots, deployment, API contracts, concurrency design and interview walkthrough.
+
+See [Review Completion Case Study](docs/REVIEW_COMPLETION_CASE_STUDY.md) for the image-lock design, final decision distribution, immutable export gate and 5090 retraining handoff.
 
 ### Production-scale validation
 
@@ -382,6 +384,8 @@ See:
 - [Reproducible public demo](docs/REPRODUCIBLE_DEMO.zh-CN.md)
 - [Core code walkthrough](docs/CODE_WALKTHROUGH.zh-CN.md)
 - [Evidence and claim boundaries](docs/PROJECT_EVIDENCE.zh-CN.md)
+- [Review completion case study](docs/REVIEW_COMPLETION_CASE_STUDY.md)
+- [Post-review safe-apply runbook](docs/POST_REVIEW_RUNBOOK.zh-CN.md)
 - [Mining-safety system design](docs/MINING_SYSTEM_DESIGN.zh-CN.md)
 - [Interview Q&A](docs/INTERVIEW_QA.zh-CN.md)
 - [Architecture and workflow](docs/ARCHITECTURE.md)

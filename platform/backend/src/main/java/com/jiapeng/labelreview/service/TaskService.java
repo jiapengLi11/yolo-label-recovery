@@ -67,20 +67,25 @@ public class TaskService {
             }
             return current.map(TaskService::view);
         }
-        Optional<ReviewTask> candidate = tasks.findClaimable(projectId, now, PageRequest.of(0, 1)).stream().findFirst();
-        if (candidate.isEmpty()) {
-            return Optional.empty();
+        // Search a small window because an older deployment may have left pending
+        // siblings beside a live claim from another reviewer. New claims lease all
+        // candidates from one image together, so reviewers keep the full context.
+        List<ReviewTask> candidates = tasks.findClaimable(projectId, now, PageRequest.of(0, 100));
+        for (ReviewTask candidate : candidates) {
+            Optional<ReviewTask> claimed = claimImage(candidate, reviewer, now);
+            if (claimed.isPresent()) {
+                ReviewTask task = claimed.get();
+                audit.record(
+                        reviewer.getUsername(),
+                        "IMAGE_CLAIMED",
+                        "PROJECT",
+                        projectId,
+                        "task=" + task.getId() + ",candidate=" + task.getCandidateId()
+                                + ",image=" + task.getImageName());
+                return Optional.of(view(task));
+            }
         }
-        ReviewTask task = candidate.get();
-        task.claim(reviewer, leaseDeadline(now));
-        tasks.flush();
-        audit.record(
-                reviewer.getUsername(),
-                "TASK_CLAIMED",
-                "PROJECT",
-                projectId,
-                "task=" + task.getId() + ",candidate=" + task.getCandidateId());
-        return Optional.of(view(task));
+        return Optional.empty();
     }
 
     @Transactional
@@ -89,31 +94,44 @@ public class TaskService {
         Optional<ReviewTask> current = tasks.findFirstByClaimedByUsernameAndStateOrderByUpdatedAtDesc(
                 reviewer.getUsername(),
                 TaskState.CLAIMED);
-        if (current.isPresent() && current.get().getLeaseUntil() != null && current.get().getLeaseUntil().isAfter(now)) {
-            if (current.get().getId().equals(taskId)) {
-                return view(current.get());
-            }
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Release the active task before claiming another candidate");
-        }
-
         ReviewTask task = tasks.findByIdForUpdate(taskId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
         projects.requireAccess(task.getProject().getId(), reviewer);
+        if (current.isPresent() && current.get().getLeaseUntil() != null && current.get().getLeaseUntil().isAfter(now)) {
+            ReviewTask active = current.get();
+            boolean sameImage = active.getProject().getId().equals(task.getProject().getId())
+                    && active.getSplit().equals(task.getSplit())
+                    && active.getImageName().equals(task.getImageName());
+            if (!sameImage) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Release the active image before claiming another candidate");
+            }
+        }
+
+        if (task.getState() == TaskState.CLAIMED
+                && task.getClaimedBy() != null
+                && task.getClaimedBy().getId().equals(reviewer.getId())
+                && task.getLeaseUntil() != null
+                && task.getLeaseUntil().isAfter(now)) {
+            return view(task);
+        }
         boolean expiredClaim = task.getState() == TaskState.CLAIMED
                 && task.getLeaseUntil() != null
                 && !task.getLeaseUntil().isAfter(now);
         if (task.getState() != TaskState.PENDING && !expiredClaim) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Candidate is no longer available");
         }
-        task.claim(reviewer, leaseDeadline(now));
-        tasks.flush();
+        ReviewTask claimed = claimImage(task, reviewer, now)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "Image is being reviewed by another reviewer"));
         audit.record(
                 reviewer.getUsername(),
-                "TASK_CLAIMED_FROM_IMAGE",
+                "IMAGE_CLAIMED_FROM_CANDIDATE",
                 "PROJECT",
                 task.getProject().getId(),
-                "task=" + task.getId() + ",candidate=" + task.getCandidateId());
-        return view(task);
+                "task=" + task.getId() + ",candidate=" + task.getCandidateId()
+                        + ",image=" + task.getImageName());
+        return view(claimed);
     }
 
     @Transactional(readOnly = true)
@@ -155,7 +173,11 @@ public class TaskService {
     @Transactional
     public TaskView heartbeat(Long taskId, AppUser reviewer) {
         ReviewTask task = requireOwnedTask(taskId, reviewer, true);
-        task.extendLease(leaseDeadline(Instant.now()));
+        Instant deadline = leaseDeadline(Instant.now());
+        List<ReviewTask> siblings = imageTasksForUpdate(task);
+        siblings.stream()
+                .filter(sibling -> isClaimedBy(sibling, reviewer))
+                .forEach(sibling -> sibling.extendLease(deadline));
         tasks.flush();
         return view(task);
     }
@@ -163,13 +185,17 @@ public class TaskService {
     @Transactional
     public void release(Long taskId, AppUser reviewer) {
         ReviewTask task = requireOwnedTask(taskId, reviewer, false);
-        task.release();
+        List<ReviewTask> siblings = imageTasksForUpdate(task);
+        long released = siblings.stream()
+                .filter(sibling -> isClaimedBy(sibling, reviewer))
+                .peek(ReviewTask::release)
+                .count();
         audit.record(
                 reviewer.getUsername(),
-                "TASK_RELEASED",
+                "IMAGE_RELEASED",
                 "PROJECT",
                 task.getProject().getId(),
-                "task=" + task.getId());
+                "task=" + task.getId() + ",image=" + task.getImageName() + ",released=" + released);
     }
 
     @Transactional
@@ -268,6 +294,43 @@ public class TaskService {
 
     private Instant leaseDeadline(Instant now) {
         return now.plus(properties.leaseMinutes(), ChronoUnit.MINUTES);
+    }
+
+    private Optional<ReviewTask> claimImage(ReviewTask anchor, AppUser reviewer, Instant now) {
+        List<ReviewTask> siblings = imageTasksForUpdate(anchor);
+        boolean claimedByOther = siblings.stream().anyMatch(sibling ->
+                sibling.getState() == TaskState.CLAIMED
+                        && sibling.getClaimedBy() != null
+                        && !sibling.getClaimedBy().getId().equals(reviewer.getId())
+                        && sibling.getLeaseUntil() != null
+                        && sibling.getLeaseUntil().isAfter(now));
+        if (claimedByOther) {
+            return Optional.empty();
+        }
+
+        Instant deadline = leaseDeadline(now);
+        for (ReviewTask sibling : siblings) {
+            boolean expired = sibling.getState() == TaskState.CLAIMED
+                    && (sibling.getLeaseUntil() == null || !sibling.getLeaseUntil().isAfter(now));
+            if (sibling.getState() == TaskState.PENDING || expired || isClaimedBy(sibling, reviewer)) {
+                sibling.claim(reviewer, deadline);
+            }
+        }
+        tasks.flush();
+        return siblings.stream().filter(sibling -> sibling.getId().equals(anchor.getId())).findFirst();
+    }
+
+    private List<ReviewTask> imageTasksForUpdate(ReviewTask task) {
+        return tasks.findImageTasksForUpdate(
+                task.getProject().getId(),
+                task.getSplit(),
+                task.getImageName());
+    }
+
+    private static boolean isClaimedBy(ReviewTask task, AppUser reviewer) {
+        return task.getState() == TaskState.CLAIMED
+                && task.getClaimedBy() != null
+                && task.getClaimedBy().getId().equals(reviewer.getId());
     }
 
     private static TaskView view(ReviewTask task) {

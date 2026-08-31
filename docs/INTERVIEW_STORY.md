@@ -12,7 +12,7 @@ Long scans are checkpointed after every committed batch. Resume validates a run 
 
 Production review showed that confidence and IoU alone were not enough for automatic writes. I added an exhaustive GT/AUTO gate using IoU, IoS, normalized center distance and area ratio, then separated model evidence, company review and safe apply into three auditable stages. The apply stage blocks unfinished decisions, detects source-label drift and creates a new dataset without changing the original.
 
-When review moved from one person to a team, I added a Vue and Spring Boot collaboration layer rather than forcing concurrent reviewers to exchange CSV files. MySQL row locks allocate different tasks atomically, renewable leases recover abandoned work, optimistic versions reject stale pages, and project membership separates data scope from global roles. In a trusted-LAN validation, two independent accounts reviewed concurrently while `30,183` tasks and `4,465` migrated desktop decisions remained auditable and idempotent.
+When review moved from one person to a team, I added a Vue and Spring Boot collaboration layer rather than forcing concurrent reviewers to exchange CSV files. I initially treated a candidate box as the allocation unit, then corrected the design after observing that boxes from one image could be split between reviewers. The final implementation uses `(project, split, image)` as the lock boundary: a short MySQL pessimistic lock allocates all sibling candidates, a renewable group lease recovers abandoned images, optimistic versions reject stale writes, and project membership separates data scope from global roles. Two independent accounts reviewed concurrently, and the run completed all `30,183` candidates with no pending, claimed or escalated state.
 
 ## Strong technical points
 
@@ -29,6 +29,8 @@ When review moved from one person to a team, I added a Vue and Spring Boot colla
 - GT/AUTO review makes the authority boundary explicit: models propose evidence, humans authorize label changes.
 - Same-target box disagreement is replaced transactionally rather than adding two contradictory boxes.
 - The collaboration platform separates offline GPU evidence generation from online stateful review, and validates concurrency with real accounts instead of claiming correctness from UI screenshots alone.
+- Image-level ownership preserves joint-scene context without sacrificing candidate-level decisions, versions or audit evidence.
+- The finalization gate converts mutable online state into an immutable, checksummed database/CSV/policy bundle before any label write or retraining begins.
 
 ## Honest limitation
 
